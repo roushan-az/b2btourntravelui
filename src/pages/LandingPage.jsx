@@ -2,10 +2,17 @@ import { useState, useEffect } from "react";
 import Navbar from "../components/Navbar";
 import { destinations, stats, testimonials, packageDurations } from "../data/mockData";
 
+// IMPORTANT: Keep your local image imports here just like you fixed them!
+import hero1 from "../assets/hero-images/hero1.png";
+import hero2 from "../assets/hero-images/hero2.png";
+import hero3 from "../assets/hero-images/hero3.png";
+import hero4 from "../assets/hero-images/hero4.png";
+
 const heroImages = [
-  "https://images.unsplash.com/photo-1566837945700-30057527ade0?w=1600&q=85",
-  "https://images.unsplash.com/photo-1617503752587-97d2103a96ea?w=1600&q=85",
-  "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=1600&q=85",
+  hero1,
+  hero2,
+  hero3,
+  hero4
 ];
 
 function AnimatedCounter({ target, suffix = "" }) {
@@ -39,8 +46,8 @@ export default function LandingPage({ navigate }) {
     <div style={{ minHeight: "100vh", background: "var(--snow)" }}>
       <Navbar navigate={navigate} />
 
-      {/* ── HERO ── */}
-      <section style={{ position: "relative", height: "100vh", overflow: "hidden" }}>
+      {/* ── 1. HERO IMAGE BANNER (No overlapping text) ── */}
+      <section style={{ position: "relative", height: "65vh", minHeight: "450px", overflow: "hidden", marginTop: "64px" }}>
         {heroImages.map((img, i) => (
           <div key={i} style={{
             position: "absolute", inset: 0,
@@ -50,39 +57,48 @@ export default function LandingPage({ navigate }) {
             opacity: i === heroIndex ? 1 : 0,
           }} />
         ))}
-        {/* Gradient overlays */}
-        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, rgba(0,0,0,0.25) 0%, rgba(10,20,10,0.65) 60%, rgba(10,20,10,0.85) 100%)" }} />
-        <div style={{ position: "absolute", inset: 0, background: "radial-gradient(ellipse at center, transparent 30%, rgba(0,0,0,0.3) 100%)" }} />
+        
+        {/* Very light gradient at the bottom just so the slider dots are visible */}
+        <div style={{ position: "absolute", inset: 0, background: "linear-gradient(180deg, transparent 70%, rgba(0,0,0,0.6) 100%)" }} />
 
-        {/* Hero Content */}
-        <div style={{
-          position: "relative", zIndex: 2, height: "100%",
-          display: "flex", flexDirection: "column", justifyContent: "center", alignItems: "center",
-          textAlign: "center", padding: "0 var(--space-xl)",
-          paddingTop: "64px",
-        }}>
-          <div style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(32px)", transition: "all 1s ease 0.2s" }}>
-            <div className="badge badge-saffron" style={{ marginBottom: "var(--space-lg)", fontSize: "0.7rem" }}>
+        {/* Hero slider dots */}
+        <div style={{ position: "absolute", bottom: "1.5rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px", zIndex: 3 }}>
+          {heroImages.map((_, i) => (
+            <button key={i} onClick={() => setHeroIndex(i)} style={{
+              width: i === heroIndex ? 24 : 8, height: 8,
+              borderRadius: 4, background: i === heroIndex ? "var(--saffron)" : "rgba(255,255,255,0.6)",
+              border: "none", cursor: "pointer", transition: "all var(--transition)",
+            }} />
+          ))}
+        </div>
+      </section>
+
+      {/* ── 2. HERO CONTENT RIBBON (Below the image) ── */}
+      <section style={{ background: "white", padding: "var(--space-2xl) 0", borderBottom: "1px solid var(--border)" }}>
+        <div className="container" style={{ display: "flex", flexDirection: "column", alignItems: "center", textAlign: "center" }}>
+          
+          <div style={{ opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)", transition: "all 0.8s ease" }}>
+            <div className="badge badge-saffron" style={{ marginBottom: "var(--space-md)", fontSize: "0.75rem" }}>
               🏔 Exclusive B2B Travel Platform — Kashmir
             </div>
           </div>
 
           <h1 style={{
-            fontFamily: "var(--font-display)", color: "white",
-            fontSize: "clamp(3rem, 6vw, 6rem)", fontWeight: 400,
-            lineHeight: 1.05, marginBottom: "var(--space-lg)",
-            opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(32px)",
-            transition: "all 1s ease 0.4s", maxWidth: "900px",
+            fontFamily: "var(--font-display)", color: "var(--pine)",
+            fontSize: "clamp(2.5rem, 5vw, 4rem)", fontWeight: 500,
+            lineHeight: 1.15, marginBottom: "var(--space-md)",
+            opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)",
+            transition: "all 0.8s ease 0.2s", maxWidth: "900px",
           }}>
             Build Kashmir Packages<br />
-            <em style={{ fontStyle: "italic", color: "rgba(255,255,255,0.85)" }}>in Minutes, Not Hours</em>
+            <em style={{ fontStyle: "italic", color: "var(--saffron)" }}>in Minutes, Not Hours</em>
           </h1>
 
           <p style={{
-            color: "rgba(255,255,255,0.75)", fontSize: "1.1rem",
-            maxWidth: "560px", lineHeight: 1.8,
+            color: "var(--ink-muted)", fontSize: "1.1rem",
+            maxWidth: "600px", lineHeight: 1.8,
             opacity: visible ? 1 : 0, transform: visible ? "translateY(0)" : "translateY(24px)",
-            transition: "all 1s ease 0.6s", marginBottom: "var(--space-xl)",
+            transition: "all 0.8s ease 0.4s", marginBottom: "var(--space-xl)",
           }}>
             The most intelligent drag-and-drop itinerary builder for travel agents.
             Smart routing, auto-pricing, professional quotations — all in one platform.
@@ -90,59 +106,39 @@ export default function LandingPage({ navigate }) {
 
           <div style={{
             display: "flex", gap: "var(--space-md)", flexWrap: "wrap", justifyContent: "center",
-            opacity: visible ? 1 : 0, transition: "all 1s ease 0.8s",
+            opacity: visible ? 1 : 0, transition: "all 0.8s ease 0.6s",
           }}>
             <button className="btn btn-primary btn-lg" onClick={() => navigate("login")}>
               Start Building Packages →
             </button>
-            <button className="btn btn-ghost btn-lg" onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}>
+            <button className="btn btn-outline btn-lg" onClick={() => document.getElementById("features")?.scrollIntoView({ behavior: "smooth" })}>
               See How It Works
             </button>
           </div>
 
-          {/* Trust bar */}
-          <div style={{
-            marginTop: "var(--space-2xl)",
+          {/* Trust bar (Now styled for a white background) */}
+          <div className="mobile-grid-1" style={{
+            marginTop: "var(--space-xl)",
             display: "flex", gap: "var(--space-xl)", flexWrap: "wrap", justifyContent: "center",
-            opacity: visible ? 1 : 0, transition: "all 1s ease 1s",
+            opacity: visible ? 1 : 0, transition: "all 0.8s ease 0.8s",
+            borderTop: "1px solid var(--border)", paddingTop: "var(--space-lg)", width: "100%", maxWidth: "800px"
           }}>
             {["1,200+ Agents", "45,000+ Packages Built", "₹48 Cr+ Revenue Generated"].map(t => (
               <div key={t} style={{
-                display: "flex", alignItems: "center", gap: "6px",
-                color: "rgba(255,255,255,0.7)", fontSize: "0.8rem", fontWeight: 500,
+                display: "flex", alignItems: "center", gap: "8px",
+                color: "var(--ink-soft)", fontSize: "0.85rem", fontWeight: 600,
               }}>
-                <span style={{ color: "var(--saffron-light)" }}>✓</span> {t}
+                <span style={{ color: "var(--saffron)", fontSize: "1.2rem" }}>✓</span> {t}
               </div>
             ))}
           </div>
-        </div>
-
-        {/* Hero dots */}
-        <div style={{ position: "absolute", bottom: "2rem", left: "50%", transform: "translateX(-50%)", display: "flex", gap: "8px", zIndex: 3 }}>
-          {heroImages.map((_, i) => (
-            <button key={i} onClick={() => setHeroIndex(i)} style={{
-              width: i === heroIndex ? 24 : 8, height: 8,
-              borderRadius: 4, background: i === heroIndex ? "var(--saffron)" : "rgba(255,255,255,0.4)",
-              border: "none", cursor: "pointer", transition: "all var(--transition)",
-            }} />
-          ))}
-        </div>
-
-        {/* Scroll indicator */}
-        <div style={{
-          position: "absolute", bottom: "2rem", right: "2rem", zIndex: 3,
-          display: "flex", flexDirection: "column", alignItems: "center", gap: "4px",
-          color: "rgba(255,255,255,0.5)", fontSize: "0.7rem", letterSpacing: "0.1em",
-        }}>
-          <div style={{ width: 1, height: 40, background: "rgba(255,255,255,0.3)", animation: "pulse 2s ease infinite" }} />
-          SCROLL
         </div>
       </section>
 
       {/* ── STATS ── */}
       <section style={{ background: "var(--pine)", padding: "var(--space-2xl) 0" }}>
         <div className="container">
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-xl)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-xl)" }}>
             {stats.map((s, i) => (
               <div key={i} style={{ textAlign: "center" }}>
                 <div style={{
@@ -167,9 +163,9 @@ export default function LandingPage({ navigate }) {
             <p style={{ maxWidth: "480px", margin: "0 auto" }}>From itinerary selection to final quotation — our intelligent workflow guides agents through every step.</p>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-lg)", position: "relative" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-lg)", position: "relative" }}>
             {/* Connecting line */}
-            <div style={{ position: "absolute", top: "52px", left: "calc(12.5% + 24px)", right: "calc(12.5% + 24px)", height: "1px", background: "linear-gradient(90deg, transparent, var(--border-strong), transparent)", zIndex: 0 }} />
+            <div className="mobile-hide" style={{ position: "absolute", top: "52px", left: "calc(12.5% + 24px)", right: "calc(12.5% + 24px)", height: "1px", background: "linear-gradient(90deg, transparent, var(--border-strong), transparent)", zIndex: 0 }} />
 
             {[
               { step: "01", icon: "📅", title: "Select Duration", desc: "Choose from 3N/4D to 7N/8D package options with instant pricing estimates." },
@@ -200,7 +196,7 @@ export default function LandingPage({ navigate }) {
         </div>
       </section>
 
-      {/* ── DESTINATIONS ── */}
+{/* ── DESTINATIONS ── */}
       <section id="destinations" style={{ padding: "var(--space-3xl) 0", background: "var(--snow-warm)" }}>
         <div className="container">
           <div style={{ textAlign: "center", marginBottom: "var(--space-2xl)" }}>
@@ -208,31 +204,28 @@ export default function LandingPage({ navigate }) {
             <h2 style={{ fontFamily: "var(--font-display)" }}>Heaven on Earth,<br /><em>Curated for Your Clients</em></h2>
           </div>
 
-          <div style={{ display: "grid", gridTemplateColumns: "1.5fr 1fr 1fr", gridTemplateRows: "280px 280px", gap: "var(--space-md)" }}>
+          {/* FIX: Adjusted the grid fractions (0.85fr 1.2fr 1.2fr) so the native heights balance perfectly */}
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "0.85fr 1.2fr 1.2fr", gap: "var(--space-md)", alignItems: "stretch" }}>
             {destinations.slice(0, 5).map((dest, i) => (
               <div key={dest.id} style={{
-                gridRow: i === 0 ? "1 / 3" : "auto",
-                borderRadius: "var(--radius-lg)", overflow: "hidden",
-                position: "relative", cursor: "pointer",
-                boxShadow: "var(--shadow-md)",
+                gridRow: i === 0 ? "span 2" : "auto", 
+                position: "relative", 
+                cursor: "pointer",
+                transition: "transform 0.5s ease",
+                height: "100%", /* Guarantees the cards stretch to touch the exact edges */
               }}
-                className="card"
+                onMouseEnter={e => e.currentTarget.style.transform = "scale(1.03)"}
+                onMouseLeave={e => e.currentTarget.style.transform = "scale(1)"}
               >
                 <img src={dest.image} alt={dest.name} style={{
-                  width: "100%", height: "100%", objectFit: "cover",
-                  transition: "transform 0.8s ease",
+                  width: "100%", 
+                  height: "100%", 
+                  objectFit: "cover", /* Fills the box perfectly. Because the grid ratio is fixed, cropping will be minimal! */
+                  display: "block",
+                  borderRadius: "var(--radius-lg)", 
+                  boxShadow: "var(--shadow-md)",
                 }}
-                  onMouseEnter={e => e.target.style.transform = "scale(1.06)"}
-                  onMouseLeave={e => e.target.style.transform = "scale(1)"}
                 />
-                <div style={{
-                  position: "absolute", inset: 0,
-                  background: "linear-gradient(180deg, transparent 40%, rgba(0,0,0,0.7) 100%)",
-                }} />
-                <div style={{ position: "absolute", bottom: "1.25rem", left: "1.25rem" }}>
-                  <div style={{ color: "rgba(255,255,255,0.7)", fontSize: "0.75rem", letterSpacing: "0.08em", textTransform: "uppercase", marginBottom: "2px" }}>{dest.region}</div>
-                  <div style={{ fontFamily: "var(--font-display)", color: "white", fontSize: i === 0 ? "2rem" : "1.4rem", fontWeight: 500 }}>{dest.name}</div>
-                </div>
               </div>
             ))}
           </div>
@@ -280,7 +273,7 @@ export default function LandingPage({ navigate }) {
       {/* ── KEY FEATURES ── */}
       <section style={{ padding: "var(--space-3xl) 0", background: "var(--pine)", overflow: "hidden" }}>
         <div className="container">
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3xl)", alignItems: "center" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-3xl)", alignItems: "center" }}>
             <div>
               <div className="badge" style={{ background: "rgba(212,130,42,0.15)", color: "var(--saffron-light)", marginBottom: "var(--space-lg)" }}>Admin Features</div>
               <h2 style={{ fontFamily: "var(--font-display)", color: "white", marginBottom: "var(--space-lg)" }}>
@@ -306,7 +299,7 @@ export default function LandingPage({ navigate }) {
             </div>
 
             {/* Feature cards visual */}
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
+            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
               {[
                 { icon: "🗺", title: "Smart Route Logic", desc: "AI-suggested next-day options based on overnight location" },
                 { icon: "💎", title: "Hidden Pricing", desc: "Agents see total cost only — margins stay protected" },
@@ -340,7 +333,7 @@ export default function LandingPage({ navigate }) {
             <div className="badge badge-saffron" style={{ marginBottom: "var(--space-md)" }}>Agent Stories</div>
             <h2 style={{ fontFamily: "var(--font-display)" }}>Trusted by India's<br /><em>Best Travel Agents</em></h2>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-lg)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-lg)" }}>
             {testimonials.map((t, i) => (
               <div key={t.id} className="card" style={{ padding: "var(--space-xl)", animation: `fadeInUp 0.6s ease ${i * 0.15}s both` }}>
                 <div style={{ display: "flex", gap: "4px", marginBottom: "var(--space-md)" }}>
@@ -400,7 +393,7 @@ export default function LandingPage({ navigate }) {
       {/* ── FOOTER ── */}
       <footer style={{ background: "#0d1a0d", padding: "var(--space-2xl) 0 var(--space-lg)" }}>
         <div className="container">
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "var(--space-2xl)", paddingBottom: "var(--space-xl)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "2fr 1fr 1fr 1fr", gap: "var(--space-2xl)", paddingBottom: "var(--space-xl)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
             <div>
               <div style={{ display: "flex", alignItems: "center", gap: "10px", marginBottom: "var(--space-md)" }}>
                 <div style={{ fontSize: "1.5rem" }}>⛰</div>
@@ -428,7 +421,7 @@ export default function LandingPage({ navigate }) {
               </div>
             ))}
           </div>
-          <div style={{ paddingTop: "var(--space-lg)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+          <div style={{ paddingTop: "var(--space-lg)", display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: "var(--space-md)" }}>
             <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.8rem" }}>© 2024 WanderKashmir. All rights reserved.</div>
             <div style={{ color: "rgba(255,255,255,0.3)", fontSize: "0.8rem" }}>Built with ❤ for Kashmir Tourism</div>
           </div>

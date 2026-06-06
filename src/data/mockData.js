@@ -1,11 +1,26 @@
+// 1. Import your local images from the assets folder.
+// IMPORTANT: Ensure these exact file names exist in src/assets/mock-images/
+import srinagarImg from "../assets/hero-images/srinagar.png";
+import gulmargImg from "../assets/hero-images/gulmarg.png";
+import pahalgamImg from "../assets/hero-images/pahalgam.png";
+import sonmargImg from "../assets/hero-images/sonmarg.png";
+import doodhpathriImg from "../assets/hero-images/doodhpathri.png";
+
+import hotelLalit from "../assets/hero-images/hotel-lalit.jpg";
+import hotelHouseboat from "../assets/hero-images/hotel-houseboat.png";
+import hotelPineSpring from "../assets/hero-images/hotel-pine-spring.jpg";
+import hotelHighlands from "../assets/hero-images/hotel-highlands.jpg";
+import hotelCentaur from "../assets/hero-images/hotel-centaur.png";
+
+
 // Mock data for Kashmir B2B Travel Portal
 
 export const destinations = [
-  { id: 1, name: "Srinagar", slug: "srinagar", region: "Kashmir Valley", image: "https://images.unsplash.com/photo-1566837945700-30057527ade0?w=600" },
-  { id: 2, name: "Gulmarg", slug: "gulmarg", region: "Baramulla", image: "https://images.unsplash.com/photo-1617503752587-97d2103a96ea?w=600" },
-  { id: 3, name: "Pahalgam", slug: "pahalgam", region: "Anantnag", image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=600" },
-  { id: 4, name: "Sonmarg", slug: "sonmarg", region: "Ganderbal", image: "https://images.unsplash.com/photo-1609766418204-94aae0ecfdfc?w=600" },
-  { id: 5, name: "Doodhpathri", slug: "doodhpathri", region: "Budgam", image: "https://images.unsplash.com/photo-1571900078956-b3b3b3b3b3b3?w=600" },
+  { id: 1, name: "Srinagar", slug: "srinagar", region: "Kashmir Valley", image: srinagarImg },
+  { id: 2, name: "Gulmarg", slug: "gulmarg", region: "Baramulla", image: gulmargImg },
+  { id: 3, name: "Pahalgam", slug: "pahalgam", region: "Anantnag", image: pahalgamImg },
+  { id: 4, name: "Sonmarg", slug: "sonmarg", region: "Ganderbal", image: sonmargImg },
+  { id: 5, name: "Doodhpathri", slug: "doodhpathri", region: "Budgam", image: doodhpathriImg },
 ];
 
 export const itineraryBlocks = [
@@ -21,7 +36,7 @@ export const itineraryBlocks = [
     color: "#1a2e1a",
     icon: "🏔",
     tags: ["arrival", "city-tour", "lake"],
-    image: "https://images.unsplash.com/photo-1566837945700-30057527ade0?w=400",
+    image: srinagarImg, // Reusing destination image
   },
   {
     id: "iti-2",
@@ -35,7 +50,7 @@ export const itineraryBlocks = [
     color: "#2d4a2d",
     icon: "🌲",
     tags: ["arrival", "pahalgam", "nature"],
-    image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400",
+    image: pahalgamImg,
   },
   {
     id: "iti-3",
@@ -49,7 +64,7 @@ export const itineraryBlocks = [
     color: "#1c3a4a",
     icon: "⛷",
     tags: ["arrival", "gulmarg", "adventure"],
-    image: "https://images.unsplash.com/photo-1617503752587-97d2103a96ea?w=400",
+    image: gulmargImg,
   },
   {
     id: "iti-4",
@@ -63,7 +78,7 @@ export const itineraryBlocks = [
     color: "#1c3a4a",
     icon: "⛷",
     tags: ["gulmarg", "adventure", "excursion"],
-    image: "https://images.unsplash.com/photo-1617503752587-97d2103a96ea?w=400",
+    image: gulmargImg,
   },
   {
     id: "iti-5",
@@ -77,7 +92,7 @@ export const itineraryBlocks = [
     color: "#7a5c2a",
     icon: "🏔",
     tags: ["sonmarg", "glacier", "excursion"],
-    image: "https://images.unsplash.com/photo-1609766418204-94aae0ecfdfc?w=400",
+    image: sonmargImg,
   },
   {
     id: "iti-6",
@@ -91,7 +106,7 @@ export const itineraryBlocks = [
     color: "#2d4a2d",
     icon: "🌿",
     tags: ["pahalgam", "valley", "local"],
-    image: "https://images.unsplash.com/photo-1587474260584-136574528ed5?w=400",
+    image: pahalgamImg,
   },
   {
     id: "iti-7",
@@ -105,7 +120,7 @@ export const itineraryBlocks = [
     color: "#1a2e1a",
     icon: "🏙",
     tags: ["srinagar", "shopping", "transfer"],
-    image: "https://images.unsplash.com/photo-1566837945700-30057527ade0?w=400",
+    image: srinagarImg,
   },
   {
     id: "iti-8",
@@ -119,7 +134,7 @@ export const itineraryBlocks = [
     color: "#1c3a4a",
     icon: "🎿",
     tags: ["gulmarg", "skiing", "adventure"],
-    image: "https://images.unsplash.com/photo-1617503752587-97d2103a96ea?w=400",
+    image: gulmargImg,
   },
   {
     id: "iti-9",
@@ -133,7 +148,7 @@ export const itineraryBlocks = [
     color: "#d4822a",
     icon: "✈",
     tags: ["departure", "srinagar", "finale"],
-    image: "https://images.unsplash.com/photo-1566837945700-30057527ade0?w=400",
+    image: srinagarImg,
   },
 ];
 
@@ -144,7 +159,7 @@ export const hotels = [
     destination: "srinagar",
     category: "5 Star Deluxe",
     stars: 5,
-    image: "https://images.unsplash.com/photo-1566073771259-6a8506099945?w=500",
+    image: hotelLalit,
     description: "Former palace of the Maharaja of Jammu & Kashmir, now a heritage luxury hotel on Dal Lake.",
     roomTypes: [
       { type: "Deluxe Room", ep: 8500, cp: 9500, map: 11500, ap: 13500, extraBed: 2500 },
@@ -161,7 +176,7 @@ export const hotels = [
     destination: "srinagar",
     category: "Premium Houseboat",
     stars: 4,
-    image: "https://images.unsplash.com/photo-1582210449638-91b2e5d24f6b?w=500",
+    image: hotelHouseboat,
     description: "Authentic Kashmiri carved cedar wood houseboat on serene Dal Lake with traditional hospitality.",
     roomTypes: [
       { type: "Standard Cabin", ep: 4500, cp: 5200, map: 6500, ap: 7800, extraBed: 1500 },
@@ -177,7 +192,7 @@ export const hotels = [
     destination: "pahalgam",
     category: "4 Star",
     stars: 4,
-    image: "https://images.unsplash.com/photo-1520250497591-112f2f40a3f4?w=500",
+    image: hotelPineSpring,
     description: "Nestled among pine forests on the banks of the Lidder River with stunning valley views.",
     roomTypes: [
       { type: "Standard Room", ep: 3500, cp: 4200, map: 5500, ap: 6800, extraBed: 1200 },
@@ -194,7 +209,7 @@ export const hotels = [
     destination: "gulmarg",
     category: "4 Star",
     stars: 4,
-    image: "https://images.unsplash.com/photo-1605538032404-d7927ba15164?w=500",
+    image: hotelHighlands,
     description: "Colonial-era property with magnificent views of the snow-clad mountains and meadows.",
     roomTypes: [
       { type: "Standard Room", ep: 4800, cp: 5800, map: 7200, ap: 8500, extraBed: 1500 },
@@ -210,7 +225,7 @@ export const hotels = [
     destination: "srinagar",
     category: "5 Star",
     stars: 5,
-    image: "https://images.unsplash.com/photo-1578683010236-d716f9a3f461?w=500",
+    image: hotelCentaur,
     description: "Iconic hotel overlooking Dal Lake with contemporary amenities and traditional Kashmiri architecture.",
     roomTypes: [
       { type: "Deluxe Room", ep: 7200, cp: 8500, map: 10000, ap: 12000, extraBed: 2200 },

@@ -362,3 +362,45 @@ a { color: inherit; text-decoration: none; }
 .status-dot.active { background: #4caf50; }
 .status-dot.pending { background: var(--saffron); }
 .status-dot.inactive { background: #ccc; }
+
+/* --- SAFE MOBILE UTILITIES --- */
+.mobile-flex { display: none !important; }
+.mobile-block { display: none !important; }
+
+@media (max-width: 768px) {
+  .mobile-flex { display: flex !important; }
+  .mobile-block { display: block !important; }
+  
+  /* Stacks inline grids */
+  .mobile-grid-1 { 
+    grid-template-columns: 1fr !important; 
+  }
+  
+  /* Horizontal scroll for tables */
+  .table-scroll { 
+    overflow-x: auto; 
+    display: block; 
+    white-space: nowrap; 
+    width: 100%; 
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Turns sidebar into a hidden slide-out drawer on mobile */
+  .admin-sidebar {
+    transform: translateX(-100%);
+    transition: transform 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    z-index: 3000 !important;
+  }
+  
+  /* Opens the drawer */
+  .admin-sidebar.open {
+    transform: translateX(0);
+  }
+  
+  /* Removes desktop margins on mobile */
+  .admin-main {
+    margin-left: 0 !important;
+    padding: var(--space-md) !important;
+  }
+}
+

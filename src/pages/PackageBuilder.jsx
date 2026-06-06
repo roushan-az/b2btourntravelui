@@ -6,30 +6,32 @@ const STEPS = ["Itinerary", "Hotels", "Vehicles", "Summary"];
 
 function StepIndicator({ currentStep }) {
   return (
-    <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, marginBottom: "var(--space-xl)" }}>
-      {STEPS.map((s, i) => (
-        <div key={s} style={{ display: "flex", alignItems: "center" }}>
-          <div style={{
-            display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
-          }}>
+    <div className="table-scroll" style={{ paddingBottom: "var(--space-md)", marginBottom: "var(--space-xl)" }}>
+      <div style={{ display: "flex", alignItems: "center", justifyContent: "center", gap: 0, minWidth: "400px" }}>
+        {STEPS.map((s, i) => (
+          <div key={s} style={{ display: "flex", alignItems: "center" }}>
             <div style={{
-              width: 36, height: 36, borderRadius: "50%",
-              background: i < currentStep ? "var(--pine)" : i === currentStep ? "var(--saffron)" : "var(--border)",
-              color: i <= currentStep ? "white" : "var(--ink-muted)",
-              display: "flex", alignItems: "center", justifyContent: "center",
-              fontSize: i < currentStep ? "1rem" : "0.85rem",
-              fontWeight: 700, transition: "all var(--transition)",
-              boxShadow: i === currentStep ? "0 0 0 4px rgba(212,130,42,0.2)" : "none",
+              display: "flex", flexDirection: "column", alignItems: "center", gap: "6px",
             }}>
-              {i < currentStep ? "✓" : i + 1}
+              <div style={{
+                width: 36, height: 36, borderRadius: "50%",
+                background: i < currentStep ? "var(--pine)" : i === currentStep ? "var(--saffron)" : "var(--border)",
+                color: i <= currentStep ? "white" : "var(--ink-muted)",
+                display: "flex", alignItems: "center", justifyContent: "center",
+                fontSize: i < currentStep ? "1rem" : "0.85rem",
+                fontWeight: 700, transition: "all var(--transition)",
+                boxShadow: i === currentStep ? "0 0 0 4px rgba(212,130,42,0.2)" : "none",
+              }}>
+                {i < currentStep ? "✓" : i + 1}
+              </div>
+              <span style={{ fontSize: "0.72rem", fontWeight: i === currentStep ? 700 : 400, color: i === currentStep ? "var(--saffron)" : i < currentStep ? "var(--pine)" : "var(--ink-muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>{s}</span>
             </div>
-            <span style={{ fontSize: "0.72rem", fontWeight: i === currentStep ? 700 : 400, color: i === currentStep ? "var(--saffron)" : i < currentStep ? "var(--pine)" : "var(--ink-muted)", letterSpacing: "0.04em", textTransform: "uppercase" }}>{s}</span>
+            {i < STEPS.length - 1 && (
+              <div style={{ width: 80, height: 2, background: i < currentStep ? "var(--pine)" : "var(--border)", margin: "0 8px", marginBottom: "22px", transition: "all var(--transition)" }} />
+            )}
           </div>
-          {i < STEPS.length - 1 && (
-            <div style={{ width: 80, height: 2, background: i < currentStep ? "var(--pine)" : "var(--border)", margin: "0 8px", marginBottom: "22px", transition: "all var(--transition)" }} />
-          )}
-        </div>
-      ))}
+        ))}
+      </div>
     </div>
   );
 }
@@ -193,7 +195,7 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
         {/* Page Header */}
         <div style={{ background: "linear-gradient(135deg, var(--pine), var(--deep-water))", padding: "var(--space-xl) 0 var(--space-lg)" }}>
           <div className="container">
-            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", marginBottom: "var(--space-md)", flexWrap: "wrap" }}>
               <button onClick={() => navigate("agent-dashboard")} style={{ background: "rgba(255,255,255,0.1)", border: "1px solid rgba(255,255,255,0.2)", color: "white", borderRadius: "var(--radius-full)", padding: "6px 14px", cursor: "pointer", fontSize: "0.8rem", fontFamily: "inherit" }}>← Back</button>
               <div className="badge" style={{ background: "rgba(212,130,42,0.2)", color: "var(--saffron-light)" }}>
                 {pkg.label} — {pkg.description}
@@ -207,7 +209,7 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
         {/* Sticky step indicator */}
         <div style={{ background: "white", borderBottom: "1px solid var(--border)", position: "sticky", top: 64, zIndex: 100, padding: "var(--space-lg) 0" }}>
           <div className="container">
-            <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between" }}>
+            <div className="mobile-stack" style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: "var(--space-md)" }}>
               <StepIndicator currentStep={step} />
               {totalCost > 0 && (
                 <div style={{ textAlign: "right" }}>
@@ -240,11 +242,13 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                   const departureDayBlock = itineraryBlocks.find(b => b.icon === "✈");
                   return (
                     <div key={dayNum} style={{ marginBottom: "var(--space-xl)" }}>
-                      <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
-                        <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--saffron)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", fontWeight: 700, flexShrink: 0 }}>{dayNum}</div>
-                        <div>
-                          <h4 style={{ fontSize: "1rem", marginBottom: "2px" }}>Day {dayNum} — Departure</h4>
-                          <p style={{ fontSize: "0.78rem" }}>Transfer to Srinagar Airport — Tour Concludes</p>
+                      <div className="mobile-stack" style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+                        <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
+                          <div style={{ width: 36, height: 36, borderRadius: "50%", background: "var(--saffron)", color: "white", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "0.85rem", fontWeight: 700, flexShrink: 0 }}>{dayNum}</div>
+                          <div>
+                            <h4 style={{ fontSize: "1rem", marginBottom: "2px" }}>Day {dayNum} — Departure</h4>
+                            <p style={{ fontSize: "0.78rem" }}>Transfer to Srinagar Airport — Tour Concludes</p>
+                          </div>
                         </div>
                         <div style={{ marginLeft: "auto", padding: "4px 12px", background: "var(--snow-warm)", borderRadius: "var(--radius-full)", fontSize: "0.75rem", color: "var(--ink-muted)" }}>Fixed</div>
                       </div>
@@ -261,24 +265,26 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
 
                 return (
                   <div key={dayNum} style={{ marginBottom: "var(--space-xl)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
-                      <div style={{
-                        width: 36, height: 36, borderRadius: "50%",
-                        background: selected ? "var(--pine)" : isLocked ? "var(--border)" : "var(--saffron)",
-                        color: "white", display: "flex", alignItems: "center", justifyContent: "center",
-                        fontSize: "0.85rem", fontWeight: 700, flexShrink: 0, transition: "all var(--transition)",
-                      }}>
-                        {selected ? "✓" : dayNum}
-                      </div>
-                      <div>
-                        <h4 style={{ fontSize: "1rem", marginBottom: "2px", color: isLocked ? "var(--ink-muted)" : "var(--ink)" }}>Day {dayNum}</h4>
-                        {isLocked ? (
-                          <p style={{ fontSize: "0.78rem" }}>Select Day {dayNum - 1} to unlock options</p>
-                        ) : blocks.length === 0 ? (
-                          <p style={{ fontSize: "0.78rem", color: "var(--saffron)" }}>No options available for this route. Please try a different Day {dayNum - 1} option.</p>
-                        ) : (
-                          <p style={{ fontSize: "0.78rem" }}>{blocks.length} option{blocks.length > 1 ? "s" : ""} available{selected ? ` — ${selected.title}` : " — Select one"}</p>
-                        )}
+                    <div className="mobile-stack" style={{ display: "flex", alignItems: "flex-start", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+                      <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
+                        <div style={{
+                          width: 36, height: 36, borderRadius: "50%",
+                          background: selected ? "var(--pine)" : isLocked ? "var(--border)" : "var(--saffron)",
+                          color: "white", display: "flex", alignItems: "center", justifyContent: "center",
+                          fontSize: "0.85rem", fontWeight: 700, flexShrink: 0, transition: "all var(--transition)",
+                        }}>
+                          {selected ? "✓" : dayNum}
+                        </div>
+                        <div>
+                          <h4 style={{ fontSize: "1rem", marginBottom: "2px", color: isLocked ? "var(--ink-muted)" : "var(--ink)" }}>Day {dayNum}</h4>
+                          {isLocked ? (
+                            <p style={{ fontSize: "0.78rem" }}>Select Day {dayNum - 1} to unlock options</p>
+                          ) : blocks.length === 0 ? (
+                            <p style={{ fontSize: "0.78rem", color: "var(--saffron)" }}>No options available for this route. Please try a different Day {dayNum - 1} option.</p>
+                          ) : (
+                            <p style={{ fontSize: "0.78rem" }}>{blocks.length} option{blocks.length > 1 ? "s" : ""} available{selected ? ` — ${selected.title}` : " — Select one"}</p>
+                          )}
+                        </div>
                       </div>
                       {selected && (
                         <button onClick={() => { const s = { ...selections.itinerary }; delete s[dayNum]; setSelections(prev => ({ ...prev, itinerary: s })); }} style={{ marginLeft: "auto", background: "none", border: "1px solid var(--border)", borderRadius: "var(--radius-full)", padding: "4px 12px", cursor: "pointer", fontSize: "0.75rem", color: "var(--ink-muted)", fontFamily: "inherit" }}>Change</button>
@@ -286,7 +292,7 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                     </div>
 
                     {!isLocked && blocks.length > 0 && (
-                      <div style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(blocks.length, 3)}, 1fr)`, gap: "var(--space-md)" }}>
+                      <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: `repeat(${Math.min(blocks.length, 3)}, 1fr)`, gap: "var(--space-md)" }}>
                         {blocks.map(block => (
                           <ItineraryCard
                             key={block.id} block={block}
@@ -329,11 +335,11 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
 
                 return (
                   <div key={dest} style={{ marginBottom: "var(--space-2xl)" }}>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", marginBottom: "var(--space-lg)" }}>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)", marginBottom: "var(--space-lg)", flexWrap: "wrap" }}>
                       <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.3rem", textTransform: "capitalize" }}>{dest}</h4>
                       <div className="badge badge-forest">{destHotels.length} hotels available</div>
                     </div>
-                    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-md)" }}>
+                    <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-md)" }}>
                       {destHotels.map(hotel => (
                         <HotelCard
                           key={hotel.id} hotel={hotel}
@@ -359,7 +365,7 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                 );
               })}
 
-              <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", paddingTop: "var(--space-lg)", borderTop: "1px solid var(--border)" }}>
+              <div className="mobile-stack" style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", paddingTop: "var(--space-lg)", borderTop: "1px solid var(--border)" }}>
                 <button className="btn btn-outline" onClick={() => setStep(0)}>← Back</button>
                 <button className="btn btn-primary btn-lg" onClick={() => setStep(2)}>Continue to Vehicle →</button>
               </div>
@@ -374,7 +380,7 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                 <p style={{ fontSize: "0.875rem" }}>Choose the right vehicle for your group size and comfort level.</p>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-lg)" }}>
+              <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-lg)" }}>
                 {vehicles.map((v, i) => (
                   <div key={v.id} onClick={() => setSelections(s => ({ ...s, vehicles: s.vehicles?.id === v.id ? null : v }))} style={{
                     background: selections.vehicles?.id === v.id ? "var(--pine)" : "white",
@@ -407,7 +413,7 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                 ))}
               </div>
 
-              <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", paddingTop: "var(--space-xl)", borderTop: "1px solid var(--border)" }}>
+              <div className="mobile-stack" style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", paddingTop: "var(--space-xl)", borderTop: "1px solid var(--border)" }}>
                 <button className="btn btn-outline" onClick={() => setStep(1)}>← Back</button>
                 <button className="btn btn-primary btn-lg" disabled={!selections.vehicles} onClick={() => setStep(3)} style={{ opacity: selections.vehicles ? 1 : 0.5 }}>
                   Review Package →
@@ -424,7 +430,7 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                 <p style={{ fontSize: "0.875rem" }}>Review your selections before generating the quotation</p>
               </div>
 
-              <div style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "var(--space-xl)" }}>
+              <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 380px", gap: "var(--space-xl)" }}>
                 <div>
                   {/* Itinerary summary */}
                   <div className="card" style={{ padding: "var(--space-xl)", marginBottom: "var(--space-lg)" }}>
@@ -459,9 +465,9 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                     <div className="card" style={{ padding: "var(--space-xl)", marginBottom: "var(--space-lg)" }}>
                       <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Selected Hotels</h4>
                       {selectedHotels.map(({ hotel, mealPlan }) => (
-                        <div key={hotel.id} style={{ display: "flex", gap: "var(--space-md)", padding: "var(--space-md) 0", borderBottom: "1px solid var(--border)" }}>
+                        <div key={hotel.id} style={{ display: "flex", gap: "var(--space-md)", padding: "var(--space-md) 0", borderBottom: "1px solid var(--border)", flexWrap: "wrap" }}>
                           <img src={hotel.image} alt={hotel.name} style={{ width: 80, height: 60, objectFit: "cover", borderRadius: "var(--radius-md)", flexShrink: 0 }} />
-                          <div style={{ flex: 1 }}>
+                          <div style={{ flex: 1, minWidth: "150px" }}>
                             <div style={{ fontWeight: 600, fontSize: "0.9rem" }}>{hotel.name}</div>
                             <div style={{ fontSize: "0.78rem", color: "var(--ink-muted)" }}>{hotel.category} · {mealPlan}</div>
                           </div>
@@ -478,9 +484,9 @@ export default function PackageBuilder({ navigate, onLogout, initialData }) {
                   {selections.vehicles && (
                     <div className="card" style={{ padding: "var(--space-xl)" }}>
                       <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Selected Vehicle</h4>
-                      <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
+                      <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center", flexWrap: "wrap" }}>
                         <div style={{ fontSize: "2.5rem" }}>{selections.vehicles.image}</div>
-                        <div style={{ flex: 1 }}>
+                        <div style={{ flex: 1, minWidth: "150px" }}>
                           <div style={{ fontWeight: 600 }}>{selections.vehicles.type}</div>
                           <div style={{ fontSize: "0.8rem", color: "var(--ink-muted)" }}>{selections.vehicles.models}</div>
                           <div style={{ fontSize: "0.78rem", color: "var(--ink-muted)" }}>👥 {selections.vehicles.capacity}</div>

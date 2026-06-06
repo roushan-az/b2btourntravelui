@@ -3,7 +3,6 @@ import Navbar from "../components/Navbar";
 import { hotels, vehicles, itineraryBlocks, destinations } from "../data/mockData";
 
 const NAV_ITEMS = [
-  { id: "overview", icon: "📊", label: "Overview" },
   { id: "destinations", icon: "📍", label: "Destinations" },
   { id: "itineraries", icon: "🗺", label: "Itineraries" },
   { id: "hotels", icon: "🏨", label: "Hotels" },
@@ -101,84 +100,6 @@ function FormRow({ label, children }) {
 
 // ─── Sub-sections ────────────────────────────────────────────────────────────
 
-function OverviewSection() {
-  const recentActivity = [
-    { type: "package", agent: "Sharma Travels", action: "Created Kashmir Classic 4N", time: "2 min ago", icon: "📦" },
-    { type: "agent", agent: "Admin", action: "Onboarded Punjab Travel World", time: "18 min ago", icon: "🧑‍💼" },
-    { type: "quotation", agent: "Kerala Holidays Hub", action: "Quotation QT-2024-1891 confirmed", time: "1 hr ago", icon: "✅" },
-    { type: "hotel", agent: "Admin", action: "Updated Hotel Pine Spring Pahalgam rates", time: "3 hrs ago", icon: "🏨" },
-    { type: "package", agent: "Delhi Holidays", action: "Created Gulmarg Skiing 3N Package", time: "5 hrs ago", icon: "📦" },
-  ];
-
-  return (
-    <div>
-      <SectionHeader title="Dashboard Overview" subtitle="Real-time snapshot of platform activity" />
-      <div className="grid-4" style={{ marginBottom: "var(--space-xl)" }}>
-        {overviewStats.map((s, i) => <StatCard key={i} stat={s} />)}
-      </div>
-
-      <div style={{ display: "grid", gridTemplateColumns: "1.4fr 1fr", gap: "var(--space-xl)" }}>
-        {/* Activity Feed */}
-        <div className="card" style={{ padding: "var(--space-xl)" }}>
-          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Live Activity Feed</h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
-            {recentActivity.map((a, i) => (
-              <div key={i} style={{ display: "flex", gap: "var(--space-md)", alignItems: "flex-start", paddingBottom: "var(--space-md)", borderBottom: i < recentActivity.length - 1 ? "1px solid var(--border)" : "none" }}>
-                <div style={{ width: 36, height: 36, borderRadius: "var(--radius-md)", background: "var(--snow-warm)", display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1rem", flexShrink: 0 }}>{a.icon}</div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: "0.875rem", fontWeight: 500, color: "var(--ink)" }}>{a.action}</div>
-                  <div style={{ fontSize: "0.75rem", color: "var(--ink-muted)" }}>{a.agent} · {a.time}</div>
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick charts */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-lg)" }}>
-          <div className="card" style={{ padding: "var(--space-xl)" }}>
-            <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.1rem", marginBottom: "var(--space-lg)" }}>Top Package Durations</h4>
-            {[
-              { label: "4N / 5D — Kashmir Classic", pct: 38, color: "var(--saffron)" },
-              { label: "5N / 6D — Explorer", pct: 28, color: "var(--pine)" },
-              { label: "3N / 4D — Quick Escape", pct: 19, color: "var(--glacier)" },
-              { label: "7N / 8D — Immersion", pct: 15, color: "#7c3aed" },
-            ].map(d => (
-              <div key={d.label} style={{ marginBottom: "var(--space-md)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "4px" }}>
-                  <span style={{ fontSize: "0.78rem", color: "var(--ink-muted)" }}>{d.label}</span>
-                  <span style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink)" }}>{d.pct}%</span>
-                </div>
-                <div style={{ height: 6, background: "var(--border)", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${d.pct}%`, background: d.color, borderRadius: 3, transition: "width 1.2s ease" }} />
-                </div>
-              </div>
-            ))}
-          </div>
-
-          <div className="card" style={{ padding: "var(--space-xl)", background: "linear-gradient(135deg, var(--pine), var(--deep-water))", border: "none" }}>
-            <h4 style={{ fontFamily: "var(--font-display)", color: "white", fontSize: "1.1rem", marginBottom: "var(--space-lg)" }}>Revenue by Season</h4>
-            {[
-              { label: "Summer (Apr–Sep)", value: "₹72L", pct: 65 },
-              { label: "Winter (Oct–Mar)", value: "₹38L", pct: 35 },
-            ].map(s => (
-              <div key={s.label} style={{ marginBottom: "var(--space-md)" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", marginBottom: "6px" }}>
-                  <span style={{ fontSize: "0.78rem", color: "rgba(255,255,255,0.6)" }}>{s.label}</span>
-                  <span style={{ fontSize: "0.85rem", fontWeight: 700, color: "white" }}>{s.value}</span>
-                </div>
-                <div style={{ height: 6, background: "rgba(255,255,255,0.15)", borderRadius: 3, overflow: "hidden" }}>
-                  <div style={{ height: "100%", width: `${s.pct}%`, background: "var(--saffron-light)", borderRadius: 3 }} />
-                </div>
-              </div>
-            ))}
-          </div>
-        </div>
-      </div>
-    </div>
-  );
-}
-
 function DestinationsSection() {
   const [showModal, setShowModal] = useState(false);
   const [form, setForm] = useState({ name: "", region: "", description: "", highlights: "", active: true });
@@ -187,40 +108,42 @@ function DestinationsSection() {
     <div>
       <SectionHeader title="Destination Management" subtitle="Add and manage Kashmir destinations available for package building" onAdd={() => setShowModal(true)} addLabel="Add Destination" />
       <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <Th>Destination</Th>
-              <Th>Region</Th>
-              <Th>Hotels</Th>
-              <Th>Itineraries</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {destinations.map((d) => (
-              <TableRow key={d.id}>
-                <Td>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-                    <img src={d.image} alt={d.name} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: "var(--radius-md)" }} />
-                    <span style={{ fontWeight: 600 }}>{d.name}</span>
-                  </div>
-                </Td>
-                <Td style={{ color: "var(--ink-muted)" }}>{d.region}</Td>
-                <Td>{hotels.filter(h => h.destination === d.slug).length}</Td>
-                <Td>{itineraryBlocks.filter(i => i.overnight === d.slug || i.from === d.slug).length}</Td>
-                <Td><span className="badge badge-success">Active</span></Td>
-                <Td>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                    <button style={{ background: "#fff3f3", border: "1px solid #ffcdd2", color: "#c62828", padding: "4px 10px", borderRadius: "var(--radius-full)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}>Delete</button>
-                  </div>
-                </Td>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <Th>Destination</Th>
+                <Th>Region</Th>
+                <Th>Hotels</Th>
+                <Th>Itineraries</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {destinations.map((d) => (
+                <TableRow key={d.id}>
+                  <Td>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
+                      <img src={d.image} alt={d.name} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: "var(--radius-md)" }} />
+                      <span style={{ fontWeight: 600 }}>{d.name}</span>
+                    </div>
+                  </Td>
+                  <Td style={{ color: "var(--ink-muted)" }}>{d.region}</Td>
+                  <Td>{hotels.filter(h => h.destination === d.slug).length}</Td>
+                  <Td>{itineraryBlocks.filter(i => i.overnight === d.slug || i.from === d.slug).length}</Td>
+                  <Td><span className="badge badge-success">Active</span></Td>
+                  <Td>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
+                      <button style={{ background: "#fff3f3", border: "1px solid #ffcdd2", color: "#c62828", padding: "4px 10px", borderRadius: "var(--radius-full)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}>Delete</button>
+                    </div>
+                  </Td>
+                </TableRow>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (
@@ -248,59 +171,61 @@ function ItinerariesSection() {
     <div>
       <SectionHeader title="Itinerary Block Management" subtitle="Create reusable day-wise itinerary options shown to agents during package building" onAdd={() => setShowModal(true)} addLabel="Add Itinerary Block" />
       <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <Th>Title</Th>
-              <Th>Day #</Th>
-              <Th>Departs From</Th>
-              <Th>Overnight</Th>
-              <Th>Highlights</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {itineraryBlocks.map((b) => (
-              <TableRow key={b.id}>
-                <Td>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                    <span style={{ fontSize: "1.2rem" }}>{b.icon}</span>
-                    <span style={{ fontWeight: 600, maxWidth: 220 }}>{b.title}</span>
-                  </div>
-                </Td>
-                <Td><span className="badge badge-forest">Day {b.day}</span></Td>
-                <Td style={{ color: "var(--ink-muted)", textTransform: "capitalize" }}>{b.from}</Td>
-                <Td>
-                  {b.overnight ? (
-                    <span style={{ color: "var(--pine)", fontWeight: 600, fontSize: "0.8rem", textTransform: "capitalize" }}>🌙 {b.overnight}</span>
-                  ) : (
-                    <span style={{ color: "var(--saffron)", fontSize: "0.8rem" }}>✈ Departure</span>
-                  )}
-                </Td>
-                <Td>
-                  <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                    {b.highlights.slice(0, 2).map(h => (
-                      <span key={h} style={{ fontSize: "0.65rem", background: "var(--snow-warm)", padding: "2px 7px", borderRadius: "var(--radius-full)", color: "var(--ink-muted)" }}>{h}</span>
-                    ))}
-                  </div>
-                </Td>
-                <Td>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                    <button style={{ background: "#fff3f3", border: "1px solid #ffcdd2", color: "#c62828", padding: "4px 10px", borderRadius: "var(--radius-full)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}>Delete</button>
-                  </div>
-                </Td>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <Th>Title</Th>
+                <Th>Day #</Th>
+                <Th>Departs From</Th>
+                <Th>Overnight</Th>
+                <Th>Highlights</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {itineraryBlocks.map((b) => (
+                <TableRow key={b.id}>
+                  <Td>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
+                      <span style={{ fontSize: "1.2rem" }}>{b.icon}</span>
+                      <span style={{ fontWeight: 600, maxWidth: 220 }}>{b.title}</span>
+                    </div>
+                  </Td>
+                  <Td><span className="badge badge-forest">Day {b.day}</span></Td>
+                  <Td style={{ color: "var(--ink-muted)", textTransform: "capitalize" }}>{b.from}</Td>
+                  <Td>
+                    {b.overnight ? (
+                      <span style={{ color: "var(--pine)", fontWeight: 600, fontSize: "0.8rem", textTransform: "capitalize" }}>🌙 {b.overnight}</span>
+                    ) : (
+                      <span style={{ color: "var(--saffron)", fontSize: "0.8rem" }}>✈ Departure</span>
+                    )}
+                  </Td>
+                  <Td>
+                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
+                      {b.highlights.slice(0, 2).map(h => (
+                        <span key={h} style={{ fontSize: "0.65rem", background: "var(--snow-warm)", padding: "2px 7px", borderRadius: "var(--radius-full)", color: "var(--ink-muted)" }}>{h}</span>
+                      ))}
+                    </div>
+                  </Td>
+                  <Td>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
+                      <button style={{ background: "#fff3f3", border: "1px solid #ffcdd2", color: "#c62828", padding: "4px 10px", borderRadius: "var(--radius-full)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}>Delete</button>
+                    </div>
+                  </Td>
+                </TableRow>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (
         <Modal title="Add Itinerary Block" onClose={() => setShowModal(false)}>
           <div>
             <FormRow label="Itinerary Title"><input className="form-input" placeholder="e.g., Arrival Srinagar — Dal Lake Sightseeing" /></FormRow>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
               <div className="form-group">
                 <label className="form-label">Day Number</label>
                 <select className="form-select">
@@ -331,7 +256,7 @@ function ItinerariesSection() {
             <FormRow label="Description"><textarea className="form-input" rows={4} placeholder="Full day description shown to agents..." style={{ resize: "vertical" }} /></FormRow>
             <FormRow label="Highlights (comma separated)"><input className="form-input" placeholder="Dal Lake, Mughal Gardens, Shikara Ride" /></FormRow>
             <FormRow label="Sightseeing Points"><input className="form-input" placeholder="Nishat Bagh, Shalimar Bagh, Chashme Shahi" /></FormRow>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
+            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
               <FormRow label="Duration"><input className="form-input" placeholder="Full Day / Half Day" /></FormRow>
               <FormRow label="Icon (emoji)"><input className="form-input" placeholder="🏔" maxLength={2} /></FormRow>
             </div>
@@ -353,53 +278,55 @@ function HotelsSection() {
     <div>
       <SectionHeader title="Hotel Management" subtitle="Manage hotels, room types, meal plans and seasonal pricing" onAdd={() => setShowModal(true)} addLabel="Add Hotel" />
       <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <Th>Hotel</Th>
-              <Th>Destination</Th>
-              <Th>Category</Th>
-              <Th>Room Types</Th>
-              <Th>Base Rate (CP)</Th>
-              <Th>Rating</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {hotels.map((h) => (
-              <TableRow key={h.id}>
-                <Td>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-                    <img src={h.image} alt={h.name} style={{ width: 44, height: 36, objectFit: "cover", borderRadius: "var(--radius-md)" }} />
-                    <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>{h.name}</span>
-                  </div>
-                </Td>
-                <Td style={{ textTransform: "capitalize" }}>{h.destination}</Td>
-                <Td><span className="badge badge-saffron" style={{ fontSize: "0.65rem" }}>{h.category}</span></Td>
-                <Td>{h.roomTypes.length} types</Td>
-                <Td style={{ fontWeight: 600 }}>₹{h.roomTypes[0].cp.toLocaleString("en-IN")}</Td>
-                <Td>
-                  <span style={{ color: "var(--saffron)", fontWeight: 700 }}>★ {h.rating}</span>
-                  <span style={{ color: "var(--ink-muted)", fontSize: "0.75rem" }}> ({h.reviews})</span>
-                </Td>
-                <Td><span className="badge badge-success">Active</span></Td>
-                <Td>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Rates</button>
-                  </div>
-                </Td>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <Th>Hotel</Th>
+                <Th>Destination</Th>
+                <Th>Category</Th>
+                <Th>Room Types</Th>
+                <Th>Base Rate (CP)</Th>
+                <Th>Rating</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {hotels.map((h) => (
+                <TableRow key={h.id}>
+                  <Td>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
+                      <img src={h.image} alt={h.name} style={{ width: 44, height: 36, objectFit: "cover", borderRadius: "var(--radius-md)" }} />
+                      <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>{h.name}</span>
+                    </div>
+                  </Td>
+                  <Td style={{ textTransform: "capitalize" }}>{h.destination}</Td>
+                  <Td><span className="badge badge-saffron" style={{ fontSize: "0.65rem" }}>{h.category}</span></Td>
+                  <Td>{h.roomTypes.length} types</Td>
+                  <Td style={{ fontWeight: 600 }}>₹{h.roomTypes[0].cp.toLocaleString("en-IN")}</Td>
+                  <Td>
+                    <span style={{ color: "var(--saffron)", fontWeight: 700 }}>★ {h.rating}</span>
+                    <span style={{ color: "var(--ink-muted)", fontSize: "0.75rem" }}> ({h.reviews})</span>
+                  </Td>
+                  <Td><span className="badge badge-success">Active</span></Td>
+                  <Td>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
+                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Rates</button>
+                    </div>
+                  </Td>
+                </TableRow>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (
         <Modal title="Add New Hotel" onClose={() => setShowModal(false)}>
           <FormRow label="Hotel Name"><input className="form-input" placeholder="e.g., Hotel Grand Palace" /></FormRow>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
             <div className="form-group">
               <label className="form-label">Destination</label>
               <select className="form-select">
@@ -425,7 +352,7 @@ function HotelsSection() {
             {["Deluxe Room", "Superior Room"].map(rt => (
               <div key={rt} style={{ marginBottom: "var(--space-md)" }}>
                 <div style={{ fontSize: "0.8rem", fontWeight: 600, marginBottom: "var(--space-sm)" }}>{rt}</div>
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-sm)" }}>
+                <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-sm)" }}>
                   {["EP", "CP", "MAP", "AP"].map(mp => (
                     <div key={mp} className="form-group">
                       <label className="form-label" style={{ fontSize: "0.65rem" }}>{mp}</label>
@@ -454,60 +381,62 @@ function VehiclesSection() {
     <div>
       <SectionHeader title="Vehicle Management" subtitle="Manage fleet, rates, and vehicle availability by season" onAdd={() => setShowModal(true)} addLabel="Add Vehicle" />
       <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <Th>Vehicle Type</Th>
-              <Th>Models</Th>
-              <Th>Capacity</Th>
-              <Th>Per Day Rate</Th>
-              <Th>Per Km Rate</Th>
-              <Th>Winter Surcharge</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {vehicles.map((v) => (
-              <TableRow key={v.id}>
-                <Td>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                    <span style={{ fontSize: "1.4rem" }}>{v.image}</span>
-                    <span style={{ fontWeight: 700 }}>{v.type}</span>
-                  </div>
-                </Td>
-                <Td style={{ color: "var(--ink-muted)", fontSize: "0.8rem", maxWidth: 180 }}>{v.models}</Td>
-                <Td>{v.capacity}</Td>
-                <Td style={{ fontWeight: 600 }}>₹{v.perDayRate.toLocaleString("en-IN")}</Td>
-                <Td>₹{v.perKmRate}/km</Td>
-                <Td style={{ color: "var(--saffron)", fontWeight: 600 }}>+₹{v.seasonal.winter}</Td>
-                <Td><span className="badge badge-success">Active</span></Td>
-                <Td>
-                  <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                </Td>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <Th>Vehicle Type</Th>
+                <Th>Models</Th>
+                <Th>Capacity</Th>
+                <Th>Per Day Rate</Th>
+                <Th>Per Km Rate</Th>
+                <Th>Winter Surcharge</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {vehicles.map((v) => (
+                <TableRow key={v.id}>
+                  <Td>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
+                      <span style={{ fontSize: "1.4rem" }}>{v.image}</span>
+                      <span style={{ fontWeight: 700 }}>{v.type}</span>
+                    </div>
+                  </Td>
+                  <Td style={{ color: "var(--ink-muted)", fontSize: "0.8rem", maxWidth: 180 }}>{v.models}</Td>
+                  <Td>{v.capacity}</Td>
+                  <Td style={{ fontWeight: 600 }}>₹{v.perDayRate.toLocaleString("en-IN")}</Td>
+                  <Td>₹{v.perKmRate}/km</Td>
+                  <Td style={{ color: "var(--saffron)", fontWeight: 600 }}>+₹{v.seasonal.winter}</Td>
+                  <Td><span className="badge badge-success">Active</span></Td>
+                  <Td>
+                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
+                  </Td>
+                </TableRow>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (
         <Modal title="Add Vehicle" onClose={() => setShowModal(false)}>
           <FormRow label="Vehicle Type"><input className="form-input" placeholder="e.g., Innova Crysta" /></FormRow>
           <FormRow label="Models / Variants"><input className="form-input" placeholder="e.g., Toyota Innova Crysta 7-seater" /></FormRow>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
             <FormRow label="Pax Capacity"><input className="form-input" placeholder="e.g., 7 Pax" /></FormRow>
             <FormRow label="Luggage Capacity"><input className="form-input" placeholder="e.g., 5 Medium Bags" /></FormRow>
           </div>
           <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)", marginBottom: "var(--space-md)" }}>
             <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--pine)", marginBottom: "var(--space-md)" }}>Pricing</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
+            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
               <FormRow label="Per Day Rate (₹)"><input className="form-input" placeholder="3500" type="number" /></FormRow>
               <FormRow label="Per Km Rate (₹)"><input className="form-input" placeholder="20" type="number" /></FormRow>
               <FormRow label="Airport Transfer"><input className="form-input" placeholder="1400" type="number" /></FormRow>
             </div>
             <div style={{ fontSize: "0.8rem", fontWeight: 600, margin: "var(--space-sm) 0", color: "var(--ink-muted)" }}>Seasonal Surcharges (₹ added to base rate)</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
+            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
               <FormRow label="Winter Surcharge"><input className="form-input" placeholder="800" type="number" /></FormRow>
               <FormRow label="Peak Season"><input className="form-input" placeholder="1200" type="number" /></FormRow>
               <FormRow label="New Year"><input className="form-input" placeholder="2000" type="number" /></FormRow>
@@ -537,66 +466,68 @@ function AgentsSection() {
     <div>
       <SectionHeader title="Agent Management" subtitle="Onboard and manage sub-agents with custom pricing and access controls" onAdd={() => setShowModal(true)} addLabel="Add Agent" />
       <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <Th>Agency</Th>
-              <Th>City</Th>
-              <Th>Email</Th>
-              <Th>Packages</Th>
-              <Th>Revenue</Th>
-              <Th>Markup</Th>
-              <Th>Status</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {agents.map((a, i) => (
-              <TableRow key={i}>
-                <Td>
-                  <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-                    <div style={{ width: 36, height: 36, borderRadius: "var(--radius-full)", background: "linear-gradient(135deg, var(--pine), var(--glacier))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: "0.75rem", flexShrink: 0 }}>
-                      {a.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <Th>Agency</Th>
+                <Th>City</Th>
+                <Th>Email</Th>
+                <Th>Packages</Th>
+                <Th>Revenue</Th>
+                <Th>Markup</Th>
+                <Th>Status</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {agents.map((a, i) => (
+                <TableRow key={i}>
+                  <Td>
+                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
+                      <div style={{ width: 36, height: 36, borderRadius: "var(--radius-full)", background: "linear-gradient(135deg, var(--pine), var(--glacier))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: "0.75rem", flexShrink: 0 }}>
+                        {a.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
+                      </div>
+                      <span style={{ fontWeight: 600, fontSize: "0.875rem" }}>{a.name}</span>
                     </div>
-                    <span style={{ fontWeight: 600, fontSize: "0.875rem" }}>{a.name}</span>
-                  </div>
-                </Td>
-                <Td style={{ color: "var(--ink-muted)" }}>{a.city}</Td>
-                <Td style={{ color: "var(--ink-muted)", fontSize: "0.8rem" }}>{a.email}</Td>
-                <Td style={{ fontWeight: 600 }}>{a.packages}</Td>
-                <Td style={{ fontWeight: 600, color: "var(--pine)" }}>{a.revenue}</Td>
-                <Td><span className="badge badge-saffron">{a.markup}</span></Td>
-                <Td>
-                  <span className={`badge ${a.status === "active" ? "badge-success" : "badge-saffron"}`}>
-                    {a.status === "active" ? "Active" : "Pending"}
-                  </span>
-                </Td>
-                <Td>
-                  <div style={{ display: "flex", gap: "6px" }}>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Pricing</button>
-                  </div>
-                </Td>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+                  </Td>
+                  <Td style={{ color: "var(--ink-muted)" }}>{a.city}</Td>
+                  <Td style={{ color: "var(--ink-muted)", fontSize: "0.8rem" }}>{a.email}</Td>
+                  <Td style={{ fontWeight: 600 }}>{a.packages}</Td>
+                  <Td style={{ fontWeight: 600, color: "var(--pine)" }}>{a.revenue}</Td>
+                  <Td><span className="badge badge-saffron">{a.markup}</span></Td>
+                  <Td>
+                    <span className={`badge ${a.status === "active" ? "badge-success" : "badge-saffron"}`}>
+                      {a.status === "active" ? "Active" : "Pending"}
+                    </span>
+                  </Td>
+                  <Td>
+                    <div style={{ display: "flex", gap: "6px" }}>
+                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
+                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Pricing</button>
+                    </div>
+                  </Td>
+                </TableRow>
+              ))}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       {showModal && (
         <Modal title="Onboard New Agent" onClose={() => setShowModal(false)}>
           <FormRow label="Agency / Company Name"><input className="form-input" placeholder="e.g., ABC Tours & Travels" /></FormRow>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
             <FormRow label="Contact Person Name"><input className="form-input" placeholder="Full Name" /></FormRow>
             <FormRow label="City / Location"><input className="form-input" placeholder="e.g., Mumbai" /></FormRow>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
             <FormRow label="Email Address"><input className="form-input" type="email" placeholder="agent@company.com" /></FormRow>
             <FormRow label="Phone Number"><input className="form-input" placeholder="+91 98000 00000" /></FormRow>
           </div>
           <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)", marginBottom: "var(--space-md)" }}>
             <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--pine)", marginBottom: "var(--space-md)" }}>Pricing & Access Settings</div>
-            <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
+            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
               <FormRow label="Markup Type">
                 <select className="form-select">
                   <option>Percentage (%)</option>
@@ -654,45 +585,47 @@ function QuotationsSection() {
         <input className="form-input" type="date" style={{ width: "auto" }} />
       </div>
       <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr>
-              <Th>Quote ID</Th>
-              <Th>Agent</Th>
-              <Th>Client</Th>
-              <Th>Pax</Th>
-              <Th>Package</Th>
-              <Th>Amount</Th>
-              <Th>Status</Th>
-              <Th>Date</Th>
-              <Th>Actions</Th>
-            </tr>
-          </thead>
-          <tbody>
-            {quotations.map((q) => {
-              const sc = statusConfig[q.status];
-              return (
-                <TableRow key={q.id}>
-                  <Td style={{ fontFamily: "monospace", fontSize: "0.78rem", color: "var(--pine)", fontWeight: 700 }}>{q.id}</Td>
-                  <Td style={{ fontWeight: 500, fontSize: "0.85rem" }}>{q.agent}</Td>
-                  <Td>{q.client}</Td>
-                  <Td>{q.pax} pax</Td>
-                  <Td style={{ color: "var(--ink-muted)", fontSize: "0.85rem" }}>{q.nights} · {q.destination}</Td>
-                  <Td style={{ fontWeight: 700, color: "var(--pine)" }}>{q.amount}</Td>
-                  <Td>
-                    <span style={{ padding: "3px 10px", borderRadius: "var(--radius-full)", background: sc.bg, color: sc.color, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                      {q.status}
-                    </span>
-                  </Td>
-                  <Td style={{ color: "var(--ink-muted)", fontSize: "0.78rem" }}>{q.date}</Td>
-                  <Td>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>View</button>
-                  </Td>
-                </TableRow>
-              );
-            })}
-          </tbody>
-        </table>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead>
+              <tr>
+                <Th>Quote ID</Th>
+                <Th>Agent</Th>
+                <Th>Client</Th>
+                <Th>Pax</Th>
+                <Th>Package</Th>
+                <Th>Amount</Th>
+                <Th>Status</Th>
+                <Th>Date</Th>
+                <Th>Actions</Th>
+              </tr>
+            </thead>
+            <tbody>
+              {quotations.map((q) => {
+                const sc = statusConfig[q.status];
+                return (
+                  <TableRow key={q.id}>
+                    <Td style={{ fontFamily: "monospace", fontSize: "0.78rem", color: "var(--pine)", fontWeight: 700 }}>{q.id}</Td>
+                    <Td style={{ fontWeight: 500, fontSize: "0.85rem" }}>{q.agent}</Td>
+                    <Td>{q.client}</Td>
+                    <Td>{q.pax} pax</Td>
+                    <Td style={{ color: "var(--ink-muted)", fontSize: "0.85rem" }}>{q.nights} · {q.destination}</Td>
+                    <Td style={{ fontWeight: 700, color: "var(--pine)" }}>{q.amount}</Td>
+                    <Td>
+                      <span style={{ padding: "3px 10px", borderRadius: "var(--radius-full)", background: sc.bg, color: sc.color, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>
+                        {q.status}
+                      </span>
+                    </Td>
+                    <Td style={{ color: "var(--ink-muted)", fontSize: "0.78rem" }}>{q.date}</Td>
+                    <Td>
+                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>View</button>
+                    </Td>
+                  </TableRow>
+                );
+              })}
+            </tbody>
+          </table>
+        </div>
       </div>
     </div>
   );
@@ -702,7 +635,7 @@ function PricingSection() {
   return (
     <div>
       <SectionHeader title="Pricing Rules & Seasonal Rates" subtitle="Set seasonal pricing, surcharges, and markup policies for all agents" />
-      <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-xl)", marginBottom: "var(--space-xl)" }}>
+      <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-xl)", marginBottom: "var(--space-xl)" }}>
         {/* Seasonal pricing */}
         <div className="card" style={{ padding: "var(--space-xl)" }}>
           <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Seasonal Rate Multipliers</h4>
@@ -760,11 +693,11 @@ function PricingSection() {
 // ─── Main Admin Dashboard ─────────────────────────────────────────────────────
 
 export default function AdminDashboard({ navigate, onLogout }) {
-  const [activeSection, setActiveSection] = useState("overview");
+  const [activeSection, setActiveSection] = useState("destinations");
+  const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
 
   const renderSection = () => {
     switch (activeSection) {
-      case "overview": return <OverviewSection />;
       case "destinations": return <DestinationsSection />;
       case "itineraries": return <ItinerariesSection />;
       case "hotels": return <HotelsSection />;
@@ -785,7 +718,7 @@ export default function AdminDashboard({ navigate, onLogout }) {
       case "settings": return (
         <div>
           <SectionHeader title="Platform Settings" subtitle="Configure portal-wide settings and preferences" />
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-xl)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-xl)" }}>
             {[
               { title: "General Settings", items: ["Portal Name", "Default Currency", "Default Language", "Contact Email"] },
               { title: "Booking Settings", items: ["Min Advance Booking Days", "Max Package Duration", "Cancellation Policy", "Payment Terms"] },
@@ -812,9 +745,20 @@ export default function AdminDashboard({ navigate, onLogout }) {
     <div style={{ minHeight: "100vh", background: "var(--snow)", display: "flex", flexDirection: "column" }}>
       <Navbar navigate={navigate} onLogout={onLogout} userRole="admin" />
 
+      {/* Kept your exact original flex container */}
       <div style={{ display: "flex", flex: 1, paddingTop: "64px" }}>
+        
+        {/* Mobile Backdrop (Closes menu when tapping outside) */}
+        {mobileMenuOpen && (
+          <div 
+            className="mobile-block" 
+            onClick={() => setMobileMenuOpen(false)} 
+            style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.5)", zIndex: 199 }} 
+          />
+        )}
+
         {/* Sidebar */}
-        <aside style={{
+        <aside className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{
           width: 240, flexShrink: 0,
           background: "var(--pine)",
           position: "fixed", top: 64, left: 0, bottom: 0,
@@ -830,7 +774,10 @@ export default function AdminDashboard({ navigate, onLogout }) {
           {/* Nav */}
           <nav style={{ padding: "var(--space-md) var(--space-sm)", flex: 1 }}>
             {NAV_ITEMS.map(item => (
-              <button key={item.id} onClick={() => setActiveSection(item.id)} style={{
+              <button key={item.id} onClick={() => {
+                  setActiveSection(item.id);
+                  setMobileMenuOpen(false); // Closes drawer automatically
+                }} style={{
                 display: "flex", alignItems: "center", gap: "var(--space-md)",
                 width: "100%", padding: "0.65rem var(--space-md)",
                 borderRadius: "var(--radius-md)", border: "none",
@@ -868,7 +815,14 @@ export default function AdminDashboard({ navigate, onLogout }) {
         </aside>
 
         {/* Main content */}
-        <main style={{ marginLeft: 240, flex: 1, padding: "var(--space-xl)", minWidth: 0 }}>
+        <main className="admin-main" style={{ marginLeft: 240, flex: 1, padding: "var(--space-xl)", minWidth: 0 }}>
+          
+          {/* Hamburger Toggle Button (Hidden completely on Desktop) */}
+          <div className="mobile-flex" style={{ marginBottom: "var(--space-lg)", alignItems: "center", gap: "var(--space-md)", background: "white", padding: "12px", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
+            <button onClick={() => setMobileMenuOpen(true)} className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>☰ Menu</button>
+            <div style={{ fontWeight: 600, color: "var(--pine)" }}>{NAV_ITEMS.find(i => i.id === activeSection)?.label}</div>
+          </div>
+
           <div style={{ animation: "fadeInUp 0.4s ease" }} key={activeSection}>
             {renderSection()}
           </div>
