@@ -61,7 +61,7 @@ export default function AgentDashboard({ navigate, onLogout }) {
 
         {/* Main content */}
         <div className="container" style={{ padding: "var(--space-xl) var(--space-xl)" }}>
-          <div style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "var(--space-xl)" }}>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "2fr 1fr", gap: "var(--space-xl)" }}>
 
             {/* Recent Quotations */}
             <div>
@@ -211,7 +211,7 @@ export default function AgentDashboard({ navigate, onLogout }) {
               <button onClick={() => setShowDurationModal(false)} style={{ background: "none", border: "none", cursor: "pointer", fontSize: "1.4rem", color: "var(--ink-muted)" }}>×</button>
             </div>
 
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-md)" }}>
+            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: "var(--space-md)" }}>
               {packageDurations.map((pkg, i) => (
                 <button key={i} onClick={() => handleStartPackage(pkg)} style={{
                   background: selectedDuration === i ? "var(--pine)" : pkg.popular ? "var(--saffron-pale)" : "var(--snow-warm)",

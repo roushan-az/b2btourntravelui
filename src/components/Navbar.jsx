@@ -28,9 +28,9 @@ export default function Navbar({ navigate, onLogout, userRole, currentPage }) {
           </div>
         </div>
 
-        {/* Navigation Links */}
+        {/* Navigation Links - Hidden on Mobile */}
         {!userRole && (
-          <div style={{ display: "flex", alignItems: "center", gap: "var(--space-xl)" }}>
+          <div className="mobile-hide" style={{ display: "flex", alignItems: "center", gap: "var(--space-xl)" }}>
             <a href="#features" style={{ fontSize: "0.875rem", color: "var(--ink-muted)", fontWeight: 500, letterSpacing: "0.02em", transition: "color var(--transition)" }}
               onMouseEnter={e => e.target.style.color = "var(--pine)"}
               onMouseLeave={e => e.target.style.color = "var(--ink-muted)"}
@@ -66,7 +66,7 @@ export default function Navbar({ navigate, onLogout, userRole, currentPage }) {
           {!userRole ? (
             <>
               <button
-                className="btn btn-outline btn-sm"
+                className="btn btn-outline btn-sm mobile-hide"
                 onClick={() => navigate("login")}
               >Agent Login</button>
               <button
