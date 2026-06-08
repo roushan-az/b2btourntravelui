@@ -1,5 +1,6 @@
 import { useState } from "react";
 import Navbar from "../components/Navbar";
+import client from "../api/client";
 
 export default function LoginPage({ onLogin, navigate }) {
   const [tab, setTab] = useState("agent");
@@ -7,17 +8,39 @@ export default function LoginPage({ onLogin, navigate }) {
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState("");
 
+  const [resetStep, setResetStep] = useState("login"); // "login", "request", "verify"
+  const [email, setEmail] = useState("");
+  const [otp, setOtp] = useState("");
+  const [newPassword, setNewPassword] = useState("");
+  const [isResetMode, setIsResetMode] = useState(false);
+  const [resetEmail, setResetEmail] = useState("");
+
   const handleSubmit = async (e) => {
     e.preventDefault();
     setLoading(true);
     setError("");
-    await new Promise(r => setTimeout(r, 1200));
-    if (form.email && form.password) {
-      onLogin(tab === "admin" ? "admin" : "agent");
-    } else {
-      setError("Please enter your credentials.");
+
+    try {
+      const response = await client.post('/auth/login', {
+        email: form.email,
+        password: form.password
+      });
+      
+      localStorage.setItem('token', response.data.access_token);
+      localStorage.setItem('userRole', tab); 
+      
+      onLogin(tab); 
+    } catch (err) {
+      // --- THE FIX: Read the specific backend error ---
+      if (err.response?.status === 403) {
+        setError("Your account is pending admin approval. Please wait to be verified.");
+      } else {
+        setError("Invalid email or password. Please try again.");
+      }
+      // ----------------------------------------------
+    } finally {
+      setLoading(false);
     }
-    setLoading(false);
   };
 
   return (
@@ -135,7 +158,13 @@ export default function LoginPage({ onLogin, navigate }) {
           </div>
 
           <p style={{ textAlign: "center", marginTop: "var(--space-lg)", fontSize: "0.875rem" }}>
-            Don't have access? <span style={{ color: "var(--saffron)", cursor: "pointer", fontWeight: 600 }}>Request Agent Account</span>
+            Don't have access? 
+            <span 
+              style={{ color: "var(--saffron)", cursor: "pointer", fontWeight: 600, marginLeft: "5px" }} 
+              onClick={() => navigate("register")}
+            >
+              Request Agent Account
+            </span>
           </p>
 
           <button

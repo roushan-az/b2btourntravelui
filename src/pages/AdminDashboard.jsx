@@ -1,6 +1,7 @@
+import client from "../api/client";
 import { useState } from "react";
 import Navbar from "../components/Navbar";
-import { hotels, vehicles, itineraryBlocks, destinations } from "../data/mockData";
+//import { hotels, vehicles, itineraryBlocks, destinations } from "../data/mockData";
 
 const NAV_ITEMS = [
   { id: "destinations", icon: "📍", label: "Destinations" },
@@ -102,65 +103,34 @@ function FormRow({ label, children }) {
 
 function DestinationsSection() {
   const [showModal, setShowModal] = useState(false);
-  const [form, setForm] = useState({ name: "", region: "", description: "", highlights: "", active: true });
+  const [destinations, setDestinations] = useState([]); // State for real data
+
+  useEffect(() => {
+    // Replace with your actual client call
+    client.get('/destinations')
+      .then(res => setDestinations(res.data))
+      .catch(err => console.error("Error:", err));
+  }, []);
 
   return (
     <div>
-      <SectionHeader title="Destination Management" subtitle="Add and manage Kashmir destinations available for package building" onAdd={() => setShowModal(true)} addLabel="Add Destination" />
+      <SectionHeader title="Destination Management" onAdd={() => setShowModal(true)} addLabel="Add Destination" />
       <div className="card" style={{ overflow: "hidden" }}>
-        <div className="table-scroll">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Destination</Th>
-                <Th>Region</Th>
-                <Th>Hotels</Th>
-                <Th>Itineraries</Th>
-                <Th>Status</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {destinations.map((d) => (
-                <TableRow key={d.id}>
-                  <Td>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-                      <img src={d.image} alt={d.name} style={{ width: 40, height: 40, objectFit: "cover", borderRadius: "var(--radius-md)" }} />
-                      <span style={{ fontWeight: 600 }}>{d.name}</span>
-                    </div>
-                  </Td>
-                  <Td style={{ color: "var(--ink-muted)" }}>{d.region}</Td>
-                  <Td>{hotels.filter(h => h.destination === d.slug).length}</Td>
-                  <Td>{itineraryBlocks.filter(i => i.overnight === d.slug || i.from === d.slug).length}</Td>
-                  <Td><span className="badge badge-success">Active</span></Td>
-                  <Td>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                      <button style={{ background: "#fff3f3", border: "1px solid #ffcdd2", color: "#c62828", padding: "4px 10px", borderRadius: "var(--radius-full)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}>Delete</button>
-                    </div>
-                  </Td>
-                </TableRow>
-              ))}
-            </tbody>
-          </table>
-        </div>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr><Th>Destination</Th><Th>Region</Th><Th>Status</Th></tr>
+          </thead>
+          <tbody>
+            {destinations.map((d) => (
+              <TableRow key={d.id}>
+                <Td>{d.name}</Td>
+                <Td>{d.region}</Td>
+                <Td><span className="badge badge-success">Active</span></Td>
+              </TableRow>
+            ))}
+          </tbody>
+        </table>
       </div>
-
-      {showModal && (
-        <Modal title="Add New Destination" onClose={() => setShowModal(false)}>
-          <div style={{ display: "flex", flexDirection: "column", gap: 0 }}>
-            <FormRow label="Destination Name"><input className="form-input" placeholder="e.g., Doodhpathri" value={form.name} onChange={e => setForm({ ...form, name: e.target.value })} /></FormRow>
-            <FormRow label="Region / District"><input className="form-input" placeholder="e.g., Budgam" value={form.region} onChange={e => setForm({ ...form, region: e.target.value })} /></FormRow>
-            <FormRow label="Description"><textarea className="form-input" rows={3} placeholder="Brief description for agents..." style={{ resize: "vertical" }} /></FormRow>
-            <FormRow label="Key Highlights (comma separated)"><input className="form-input" placeholder="e.g., Meadows, Waterfall, Pine Forest" /></FormRow>
-            <FormRow label="Hero Image URL"><input className="form-input" placeholder="https://..." /></FormRow>
-            <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", marginTop: "var(--space-md)" }}>
-              <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary">Save Destination</button>
-            </div>
-          </div>
-        </Modal>
-      )}
     </div>
   );
 }
@@ -273,104 +243,33 @@ function ItinerariesSection() {
 }
 
 function HotelsSection() {
-  const [showModal, setShowModal] = useState(false);
+  const [hotels, setHotels] = useState([]);
+
+  useEffect(() => {
+    client.get('/hotels')
+      .then(res => setHotels(res.data))
+      .catch(err => console.error("Error:", err));
+  }, []);
+
   return (
     <div>
-      <SectionHeader title="Hotel Management" subtitle="Manage hotels, room types, meal plans and seasonal pricing" onAdd={() => setShowModal(true)} addLabel="Add Hotel" />
-      <div className="card" style={{ overflow: "hidden" }}>
-        <div className="table-scroll">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Hotel</Th>
-                <Th>Destination</Th>
-                <Th>Category</Th>
-                <Th>Room Types</Th>
-                <Th>Base Rate (CP)</Th>
-                <Th>Rating</Th>
-                <Th>Status</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {hotels.map((h) => (
-                <TableRow key={h.id}>
-                  <Td>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-                      <img src={h.image} alt={h.name} style={{ width: 44, height: 36, objectFit: "cover", borderRadius: "var(--radius-md)" }} />
-                      <span style={{ fontWeight: 600, fontSize: "0.85rem" }}>{h.name}</span>
-                    </div>
-                  </Td>
-                  <Td style={{ textTransform: "capitalize" }}>{h.destination}</Td>
-                  <Td><span className="badge badge-saffron" style={{ fontSize: "0.65rem" }}>{h.category}</span></Td>
-                  <Td>{h.roomTypes.length} types</Td>
-                  <Td style={{ fontWeight: 600 }}>₹{h.roomTypes[0].cp.toLocaleString("en-IN")}</Td>
-                  <Td>
-                    <span style={{ color: "var(--saffron)", fontWeight: 700 }}>★ {h.rating}</span>
-                    <span style={{ color: "var(--ink-muted)", fontSize: "0.75rem" }}> ({h.reviews})</span>
-                  </Td>
-                  <Td><span className="badge badge-success">Active</span></Td>
-                  <Td>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Rates</button>
-                    </div>
-                  </Td>
-                </TableRow>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
-
-      {showModal && (
-        <Modal title="Add New Hotel" onClose={() => setShowModal(false)}>
-          <FormRow label="Hotel Name"><input className="form-input" placeholder="e.g., Hotel Grand Palace" /></FormRow>
-          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
-            <div className="form-group">
-              <label className="form-label">Destination</label>
-              <select className="form-select">
-                {destinations.map(d => <option key={d.id} value={d.slug}>{d.name}</option>)}
-              </select>
-            </div>
-            <div className="form-group">
-              <label className="form-label">Category</label>
-              <select className="form-select">
-                <option>5 Star Deluxe</option>
-                <option>5 Star</option>
-                <option>4 Star</option>
-                <option>3 Star</option>
-                <option>Heritage Hotel</option>
-                <option>Premium Houseboat</option>
-                <option>Budget Houseboat</option>
-              </select>
-            </div>
-          </div>
-          <FormRow label="Description"><textarea className="form-input" rows={3} style={{ resize: "vertical" }} placeholder="Brief description..." /></FormRow>
-          <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)", marginBottom: "var(--space-md)" }}>
-            <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--pine)", marginBottom: "var(--space-md)", letterSpacing: "0.06em", textTransform: "uppercase" }}>Room Rates (EP / CP / MAP / AP) per night</div>
-            {["Deluxe Room", "Superior Room"].map(rt => (
-              <div key={rt} style={{ marginBottom: "var(--space-md)" }}>
-                <div style={{ fontSize: "0.8rem", fontWeight: 600, marginBottom: "var(--space-sm)" }}>{rt}</div>
-                <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "repeat(4, 1fr)", gap: "var(--space-sm)" }}>
-                  {["EP", "CP", "MAP", "AP"].map(mp => (
-                    <div key={mp} className="form-group">
-                      <label className="form-label" style={{ fontSize: "0.65rem" }}>{mp}</label>
-                      <input className="form-input" placeholder="₹0" type="number" style={{ fontSize: "0.8rem", padding: "0.5rem 0.75rem" }} />
-                    </div>
-                  ))}
-                </div>
-              </div>
+      <SectionHeader title="Hotel Management" />
+      <div className="card">
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead>
+            <tr><Th>Hotel</Th><Th>Destination</Th><Th>Base Rate (CP)</Th></tr>
+          </thead>
+          <tbody>
+            {hotels.map((h) => (
+              <TableRow key={h.id}>
+                <Td>{h.name}</Td>
+                <Td>{h.destination_id}</Td> {/* Backend returns UUID */}
+                <Td>₹{h.roomTypes?.[0]?.cp?.toLocaleString()}</Td>
+              </TableRow>
             ))}
-          </div>
-          <FormRow label="Amenities (comma separated)"><input className="form-input" placeholder="Spa, Pool, Restaurant, WiFi, Lake View" /></FormRow>
-          <FormRow label="Hotel Image URL"><input className="form-input" placeholder="https://..." /></FormRow>
-          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end" }}>
-            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-            <button className="btn btn-primary">Save Hotel</button>
-          </div>
-        </Modal>
-      )}
+          </tbody>
+        </table>
+      </div>
     </div>
   );
 }

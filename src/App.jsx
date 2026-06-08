@@ -5,11 +5,13 @@ import AgentDashboard from "./pages/AgentDashboard";
 import PackageBuilder from "./pages/PackageBuilder";
 import AdminDashboard from "./pages/AdminDashboard";
 import QuotationPage from "./pages/QuotationPage";
+import RegisterPage from "./pages/RegisterPage";
 
 export default function App() {
   const [currentPage, setCurrentPage] = useState("landing");
   const [userRole, setUserRole] = useState(null);
   const [packageData, setPackageData] = useState(null);
+  
 
   const navigate = (page, data = null) => {
     setCurrentPage(page);
@@ -34,6 +36,7 @@ export default function App() {
       {currentPage === "package-builder" && <PackageBuilder navigate={navigate} onLogout={handleLogout} initialData={packageData} />}
       {currentPage === "quotation" && <QuotationPage navigate={navigate} onLogout={handleLogout} packageData={packageData} />}
       {currentPage === "admin-dashboard" && <AdminDashboard navigate={navigate} onLogout={handleLogout} />}
+      {currentPage === "register" && <RegisterPage navigate={navigate} />}
     </div>
   );
 }
