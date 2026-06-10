@@ -1,7 +1,6 @@
 import client from "../api/client";
-import { useState } from "react";
 import Navbar from "../components/Navbar";
-//import { hotels, vehicles, itineraryBlocks, destinations } from "../data/mockData";
+import { useState, useEffect } from "react";
 
 const NAV_ITEMS = [
   { id: "destinations", icon: "📍", label: "Destinations" },
@@ -137,6 +136,14 @@ function DestinationsSection() {
 
 function ItinerariesSection() {
   const [showModal, setShowModal] = useState(false);
+  const [itineraryBlocks, setItineraryBlocks] = useState([]);
+
+  useEffect(() => {
+    client.get('/itineraries')
+      .then(res => setItineraryBlocks(res.data))
+      .catch(err => console.error("Failed to load itineraries:", err));
+  }, []);
+
   return (
     <div>
       <SectionHeader title="Itinerary Block Management" subtitle="Create reusable day-wise itinerary options shown to agents during package building" onAdd={() => setShowModal(true)} addLabel="Add Itinerary Block" />
@@ -276,6 +283,14 @@ function HotelsSection() {
 
 function VehiclesSection() {
   const [showModal, setShowModal] = useState(false);
+  const [vehicles, setVehicles] = useState([]);
+
+  useEffect(() => {
+    client.get('/vehicles')
+      .then(res => setVehicles(res.data))
+      .catch(err => console.error("Failed to load vehicles:", err));
+  }, []);
+
   return (
     <div>
       <SectionHeader title="Vehicle Management" subtitle="Manage fleet, rates, and vehicle availability by season" onAdd={() => setShowModal(true)} addLabel="Add Vehicle" />

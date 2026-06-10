@@ -6,7 +6,7 @@ const client = axios.create({
 
 // Attach token to every request automatically
 client.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
+  const token = sessionStorage.getItem('wk_access_token'); // matches tokenStore in api.js
   if (token) config.headers.Authorization = `Bearer ${token}`;
   return config;
 });
@@ -16,7 +16,7 @@ client.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response?.status === 401) {
-      localStorage.clear();
+      sessionStorage.clear(); // clear wk_access_token and wk_refresh_token
       window.location.href = "/login";
     }
     return Promise.reject(error);
