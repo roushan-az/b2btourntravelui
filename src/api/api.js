@@ -149,7 +149,13 @@ export const hotels = {
   listByDestination: (slug) => request(`/hotels?destination_slug=${slug}`),
   create: (data) => request("/hotels", { method: "POST", body: data }),
   update: (id, data) => request(`/hotels/${id}`, { method: "PATCH", body: data }),
-  delete: (id) => request(`/hotels/${id}`, { method: "DELETE" }),
+  
+  // ADD CONSOLE LOGS HERE TO VERIFY FRONTEND EXECUTION:
+  delete: (id) => {
+    console.log("🟢 API Client executing DELETE hotel with ID:", id);
+    return request(`/hotels/${id}`, { method: "DELETE" });
+  },
+  
   uploadImage: (id, file) => uploadFile(`/hotels/${id}/image`, file),
   addRoomType: (hotelId, data) =>
     request(`/hotels/${hotelId}/room-types`, { method: "POST", body: data }),
@@ -158,7 +164,6 @@ export const hotels = {
   deleteRoomType: (hotelId, roomTypeId) =>
     request(`/hotels/${hotelId}/room-types/${roomTypeId}`, { method: "DELETE" }),
 };
-
 // ── Vehicles ──────────────────────────────────────────────────────────────────
 export const vehicles = {
   list: (activeOnly = true) => request(`/vehicles?active_only=${activeOnly}`),

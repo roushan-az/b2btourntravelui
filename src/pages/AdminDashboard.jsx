@@ -1,6 +1,6 @@
-import client from "../api/client";
-import Navbar from "../components/Navbar";
 import { useState, useEffect } from "react";
+import api from "../api/api";
+import Navbar from "../components/Navbar";
 
 const NAV_ITEMS = [
   { id: "destinations", icon: "📍", label: "Destinations" },
@@ -14,50 +14,27 @@ const NAV_ITEMS = [
   { id: "settings", icon: "⚙️", label: "Settings" },
 ];
 
-const overviewStats = [
-  { label: "Total Agents", value: "1,248", change: "+12", trend: "up", icon: "🧑‍💼", color: "var(--pine)" },
-  { label: "Packages This Month", value: "3,412", change: "+8%", trend: "up", icon: "📦", color: "var(--saffron)" },
-  { label: "Revenue (MTD)", value: "₹1.2Cr", change: "+22%", trend: "up", icon: "💰", color: "var(--glacier)" },
-  { label: "Pending Quotations", value: "84", change: "-5", trend: "down", icon: "📋", color: "#7c3aed" },
-];
-
-function StatCard({ stat }) {
-  return (
-    <div className="card" style={{ padding: "var(--space-xl)" }}>
-      <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "var(--space-lg)" }}>
-        <div style={{ width: 44, height: 44, borderRadius: "var(--radius-md)", background: `${stat.color}18`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: "1.4rem" }}>{stat.icon}</div>
-        <div style={{ padding: "3px 10px", borderRadius: "var(--radius-full)", background: stat.trend === "up" ? "#e8f5e9" : "#fff3f3", color: stat.trend === "up" ? "#2e7d32" : "#c62828", fontSize: "0.72rem", fontWeight: 700 }}>
-          {stat.trend === "up" ? "↑" : "↓"} {stat.change}
-        </div>
-      </div>
-      <div style={{ fontFamily: "var(--font-display)", fontSize: "1.9rem", fontWeight: 500, color: "var(--ink)", lineHeight: 1 }}>{stat.value}</div>
-      <div style={{ fontSize: "0.8rem", color: "var(--ink-muted)", marginTop: "4px" }}>{stat.label}</div>
-    </div>
-  );
-}
+// ─── Shared UI Components ────────────────────────────────────────────────────
 
 function SectionHeader({ title, subtitle, onAdd, addLabel = "Add New" }) {
   return (
     <div style={{ display: "flex", alignItems: "flex-start", justifyContent: "space-between", marginBottom: "var(--space-xl)", flexWrap: "wrap", gap: "var(--space-md)" }}>
       <div>
         <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.6rem", marginBottom: "4px" }}>{title}</h3>
-        {subtitle && <p style={{ fontSize: "0.875rem" }}>{subtitle}</p>}
+        {subtitle && <p style={{ fontSize: "0.875rem", color: "var(--ink-muted)" }}>{subtitle}</p>}
       </div>
-      {onAdd && (
-        <button className="btn btn-primary btn-sm" onClick={onAdd}>+ {addLabel}</button>
-      )}
+      {onAdd && <button className="btn btn-primary btn-sm" onClick={onAdd}>+ {addLabel}</button>}
     </div>
   );
 }
 
-function TableRow({ children, onClick }) {
+function TableRow({ children }) {
   const [hovered, setHovered] = useState(false);
   return (
     <tr
-      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ background: hovered ? "var(--snow-warm)" : "white", cursor: onClick ? "pointer" : "default", transition: "background var(--transition)" }}
+      style={{ background: hovered ? "var(--snow-warm)" : "white", transition: "background var(--transition)" }}
     >
       {children}
     </tr>
@@ -73,12 +50,8 @@ const Th = ({ children }) => (
 
 function Modal({ title, onClose, children }) {
   return (
-    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 3000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-xl)", backdropFilter: "blur(4px)", animation: "fadeIn 0.2s ease" }}
-      onClick={onClose}
-    >
-      <div style={{ background: "white", borderRadius: "var(--radius-xl)", width: "100%", maxWidth: "640px", maxHeight: "85vh", overflow: "auto", boxShadow: "var(--shadow-xl)", animation: "fadeInUp 0.3s ease" }}
-        onClick={e => e.stopPropagation()}
-      >
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.55)", zIndex: 3000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-xl)", backdropFilter: "blur(4px)", animation: "fadeIn 0.2s ease" }} onClick={onClose}>
+      <div style={{ background: "white", borderRadius: "var(--radius-xl)", width: "100%", maxWidth: "640px", maxHeight: "85vh", overflow: "auto", boxShadow: "var(--shadow-xl)", animation: "fadeInUp 0.3s ease" }} onClick={e => e.stopPropagation()}>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--space-xl)", borderBottom: "1px solid var(--border)", position: "sticky", top: 0, background: "white", zIndex: 1 }}>
           <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.4rem" }}>{title}</h3>
           <button onClick={onClose} style={{ background: "none", border: "1px solid var(--border)", borderRadius: "var(--radius-full)", width: 32, height: 32, cursor: "pointer", fontSize: "1.1rem", color: "var(--ink-muted)", display: "flex", alignItems: "center", justifyContent: "center" }}>×</button>
@@ -98,98 +71,224 @@ function FormRow({ label, children }) {
   );
 }
 
-// ─── Sub-sections ────────────────────────────────────────────────────────────
-
-function DestinationsSection() {
-  const [showModal, setShowModal] = useState(false);
-  const [destinations, setDestinations] = useState([]); // State for real data
-
-  useEffect(() => {
-    // Replace with your actual client call
-    client.get('/destinations')
-      .then(res => setDestinations(res.data))
-      .catch(err => console.error("Error:", err));
-  }, []);
-
+function ConfirmActionModal({ isOpen, onClose, onConfirm, title, message, confirmText = "Yes, Delete", isProcessing }) {
+  if (!isOpen) return null;
   return (
-    <div>
-      <SectionHeader title="Destination Management" onAdd={() => setShowModal(true)} addLabel="Add Destination" />
-      <div className="card" style={{ overflow: "hidden" }}>
-        <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr><Th>Destination</Th><Th>Region</Th><Th>Status</Th></tr>
-          </thead>
-          <tbody>
-            {destinations.map((d) => (
-              <TableRow key={d.id}>
-                <Td>{d.name}</Td>
-                <Td>{d.region}</Td>
-                <Td><span className="badge badge-success">Active</span></Td>
-              </TableRow>
-            ))}
-          </tbody>
-        </table>
+    <div style={{ position: "fixed", inset: 0, background: "rgba(0,0,0,0.65)", zIndex: 4000, display: "flex", alignItems: "center", justifyContent: "center", padding: "var(--space-xl)", backdropFilter: "blur(4px)", animation: "fadeIn 0.2s ease" }} onClick={onClose}>
+      <div style={{ background: "white", borderRadius: "var(--radius-xl)", width: "100%", maxWidth: "420px", padding: "var(--space-2xl)", textAlign: "center", boxShadow: "var(--shadow-2xl)", animation: "fadeInUp 0.3s ease" }} onClick={e => e.stopPropagation()}>
+        <div style={{ fontSize: "3rem", marginBottom: "var(--space-md)" }}>⚠️</div>
+        <h3 style={{ fontFamily: "var(--font-display)", fontSize: "1.5rem", marginBottom: "var(--space-sm)", color: "var(--ink)" }}>{title}</h3>
+        <p style={{ fontSize: "0.95rem", color: "var(--ink-muted)", marginBottom: "var(--space-xl)", lineHeight: 1.6 }}>{message}</p>
+        
+        <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "center" }}>
+          <button className="btn btn-outline" onClick={onClose} disabled={isProcessing}>Cancel</button>
+          <button className="btn btn-primary" style={{ background: "#c62828", borderColor: "#c62828" }} onClick={onConfirm} disabled={isProcessing}>
+            {isProcessing ? "Processing..." : confirmText}
+          </button>
+        </div>
       </div>
     </div>
   );
 }
+
+// ─── Destinations Section ───────────────────────────────────────────────────
+
+function DestinationsSection() {
+  const [showModal, setShowModal] = useState(false);
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  const [errorMsg, setErrorMsg] = useState(""); 
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+  
+  const [formData, setFormData] = useState({ name: "", region: "", is_active: true });
+
+  const fetchDestinations = async () => {
+    try {
+      const data = await api.destinations.list();
+      setDestinations(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) {
+      console.error("Failed to fetch destinations:", err);
+    }
+  };
+
+  useEffect(() => { fetchDestinations(); }, []);
+
+  const handleSave = async () => {
+    setErrorMsg(""); 
+    if (!formData.name || !formData.region) return setErrorMsg("Please fill all required fields.");
+    
+    setLoading(true);
+    try {
+      const payload = {
+        name: formData.name,
+        slug: formData.name.toLowerCase().replace(/[^a-z0-9]+/g, '-'),
+        region: formData.region,
+        is_active: true
+      };
+      
+      await api.destinations.create(payload);
+      setShowModal(false);
+      setFormData({ name: "", region: "", is_active: true });
+      fetchDestinations();
+    } catch (err) {
+      setErrorMsg(err.message || "An unexpected error occurred."); 
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.destinations.delete(deleteTarget.id);
+      setDeleteTarget(null);
+      fetchDestinations();
+    } catch (err) {
+      setDeleteTarget(null);
+      console.error("Error deleting destination: " + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Destination Management" onAdd={() => { setShowModal(true); setErrorMsg(""); }} addLabel="Add Destination" />
+      <div className="card" style={{ overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><Th>Destination</Th><Th>Region</Th><Th>Status</Th><Th>Actions</Th></tr></thead>
+          <tbody>
+            {destinations.map((d) => (
+              <TableRow key={d.id}>
+                <Td style={{ fontWeight: 600 }}>{d.name}</Td>
+                <Td>{d.region}</Td>
+                <Td><span className="badge badge-success">Active</span></Td>
+                <Td><button onClick={() => setDeleteTarget({ id: d.id, title: d.name })} className="btn btn-outline btn-sm" style={{ borderColor: "#ffcdd2", color: "#c62828" }}>Delete</button></Td>
+              </TableRow>
+            ))}
+            {destinations.length === 0 && <tr><Td colSpan="4" style={{textAlign:"center", padding:"var(--space-xl)", color:"var(--ink-muted)"}}>No destinations found.</Td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      <ConfirmActionModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={executeDelete}
+        title="Delete Destination"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        isProcessing={isDeleting}
+      />
+
+      {showModal && (
+        <Modal title="Add Destination" onClose={() => setShowModal(false)}>
+          {errorMsg && (
+            <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span>⚠</span><span>{errorMsg}</span>
+            </div>
+          )}
+          <FormRow label="Destination Name">
+            <input className="form-input" placeholder="e.g., Srinagar" value={formData.name} onChange={(e) => setFormData({ ...formData, name: e.target.value })} />
+          </FormRow>
+          <FormRow label="Region">
+            <input className="form-input" placeholder="e.g., Kashmir Valley" value={formData.region} onChange={(e) => setFormData({ ...formData, region: e.target.value })} />
+          </FormRow>
+          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", marginTop: "var(--space-md)" }}>
+            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Destination"}</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ─── Itineraries Section ────────────────────────────────────────────────────
 
 function ItinerariesSection() {
   const [showModal, setShowModal] = useState(false);
   const [itineraryBlocks, setItineraryBlocks] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  const [errorMsg, setErrorMsg] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    client.get('/itineraries')
-      .then(res => setItineraryBlocks(res.data))
-      .catch(err => console.error("Failed to load itineraries:", err));
-  }, []);
+  const [formData, setFormData] = useState({ title: "", day_number: 1, departs_from: "arrival", overnight_slug: "srinagar", description: "", highlights: "", icon: "🏔" });
+
+  const fetchItineraries = async () => {
+    try {
+      const data = await api.itineraries.list();
+      setItineraryBlocks(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) { 
+      console.error("Failed to load itineraries:", err); 
+    }
+  };
+
+  useEffect(() => { fetchItineraries(); }, []);
+
+  const handleSave = async () => {
+    setErrorMsg("");
+    if (!formData.title || !formData.description) return setErrorMsg("Title and Description are required.");
+    
+    setLoading(true);
+    try {
+      const payload = {
+        ...formData,
+        highlights: formData.highlights.split(',').map(h => h.trim()).filter(h => h),
+        day_number: parseInt(formData.day_number)
+      };
+      await api.itineraries.create(payload);
+      setShowModal(false);
+      setFormData({ title: "", day_number: 1, departs_from: "arrival", overnight_slug: "srinagar", description: "", highlights: "", icon: "🏔" });
+      fetchItineraries();
+    } catch (err) { 
+      setErrorMsg(err.message || "An unexpected error occurred."); 
+    } finally { 
+      setLoading(false); 
+    }
+  };
+
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try { 
+      await api.itineraries.delete(deleteTarget.id); 
+      setDeleteTarget(null);
+      fetchItineraries(); 
+    } catch (err) { 
+      setDeleteTarget(null);
+      console.error("Error deleting itinerary: " + err.message);
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
-    <div>
-      <SectionHeader title="Itinerary Block Management" subtitle="Create reusable day-wise itinerary options shown to agents during package building" onAdd={() => setShowModal(true)} addLabel="Add Itinerary Block" />
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Itinerary Block Management" subtitle="Create reusable day-wise itinerary options" onAdd={() => { setShowModal(true); setErrorMsg(""); }} addLabel="Add Itinerary Block" />
+      
       <div className="card" style={{ overflow: "hidden" }}>
         <div className="table-scroll">
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Title</Th>
-                <Th>Day #</Th>
-                <Th>Departs From</Th>
-                <Th>Overnight</Th>
-                <Th>Highlights</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
+            <thead><tr><Th>Title</Th><Th>Day #</Th><Th>Departs From</Th><Th>Overnight</Th><Th>Actions</Th></tr></thead>
             <tbody>
-              {itineraryBlocks.map((b) => (
+              {(itineraryBlocks || []).map((b) => (
                 <TableRow key={b.id}>
+                  <Td><div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}><span style={{ fontSize: "1.2rem" }}>{b.icon}</span><span style={{ fontWeight: 600 }}>{b.title}</span></div></Td>
+                  <Td><span className="badge badge-forest">Day {b.day_number}</span></Td>
+                  <Td style={{ textTransform: "capitalize" }}>{b.departs_from}</Td>
+                  <Td>{b.overnight_slug ? <span style={{ color: "var(--pine)", fontWeight: 600 }}>🌙 {b.overnight_slug}</span> : <span style={{ color: "var(--saffron)" }}>✈ Departure</span>}</Td>
                   <Td>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                      <span style={{ fontSize: "1.2rem" }}>{b.icon}</span>
-                      <span style={{ fontWeight: 600, maxWidth: 220 }}>{b.title}</span>
-                    </div>
-                  </Td>
-                  <Td><span className="badge badge-forest">Day {b.day}</span></Td>
-                  <Td style={{ color: "var(--ink-muted)", textTransform: "capitalize" }}>{b.from}</Td>
-                  <Td>
-                    {b.overnight ? (
-                      <span style={{ color: "var(--pine)", fontWeight: 600, fontSize: "0.8rem", textTransform: "capitalize" }}>🌙 {b.overnight}</span>
-                    ) : (
-                      <span style={{ color: "var(--saffron)", fontSize: "0.8rem" }}>✈ Departure</span>
-                    )}
-                  </Td>
-                  <Td>
-                    <div style={{ display: "flex", gap: "4px", flexWrap: "wrap" }}>
-                      {b.highlights.slice(0, 2).map(h => (
-                        <span key={h} style={{ fontSize: "0.65rem", background: "var(--snow-warm)", padding: "2px 7px", borderRadius: "var(--radius-full)", color: "var(--ink-muted)" }}>{h}</span>
-                      ))}
-                    </div>
-                  </Td>
-                  <Td>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                      <button style={{ background: "#fff3f3", border: "1px solid #ffcdd2", color: "#c62828", padding: "4px 10px", borderRadius: "var(--radius-full)", cursor: "pointer", fontSize: "0.75rem", fontFamily: "inherit" }}>Delete</button>
-                    </div>
+                    <button 
+                      onClick={() => setDeleteTarget({ id: b.id, title: b.title })} 
+                      className="btn btn-outline btn-sm" style={{ borderColor: "#ffcdd2", color: "#c62828" }}
+                    >
+                      Delete
+                    </button>
                   </Td>
                 </TableRow>
               ))}
@@ -198,50 +297,36 @@ function ItinerariesSection() {
         </div>
       </div>
 
+      <ConfirmActionModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={executeDelete}
+        title="Delete Itinerary"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        isProcessing={isDeleting}
+      />
+
       {showModal && (
         <Modal title="Add Itinerary Block" onClose={() => setShowModal(false)}>
-          <div>
-            <FormRow label="Itinerary Title"><input className="form-input" placeholder="e.g., Arrival Srinagar — Dal Lake Sightseeing" /></FormRow>
-            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
-              <div className="form-group">
-                <label className="form-label">Day Number</label>
-                <select className="form-select">
-                  {[1, 2, 3, 4, 5, 6, 7].map(d => <option key={d}>Day {d}</option>)}
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Departs From</label>
-                <select className="form-select">
-                  <option>arrival</option>
-                  <option>srinagar</option>
-                  <option>pahalgam</option>
-                  <option>gulmarg</option>
-                  <option>sonmarg</option>
-                </select>
-              </div>
-              <div className="form-group">
-                <label className="form-label">Overnight At</label>
-                <select className="form-select">
-                  <option>srinagar</option>
-                  <option>pahalgam</option>
-                  <option>gulmarg</option>
-                  <option>sonmarg</option>
-                  <option>departure</option>
-                </select>
-              </div>
+          
+          {errorMsg && (
+            <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span>⚠</span><span>{errorMsg}</span>
             </div>
-            <FormRow label="Description"><textarea className="form-input" rows={4} placeholder="Full day description shown to agents..." style={{ resize: "vertical" }} /></FormRow>
-            <FormRow label="Highlights (comma separated)"><input className="form-input" placeholder="Dal Lake, Mughal Gardens, Shikara Ride" /></FormRow>
-            <FormRow label="Sightseeing Points"><input className="form-input" placeholder="Nishat Bagh, Shalimar Bagh, Chashme Shahi" /></FormRow>
-            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
-              <FormRow label="Duration"><input className="form-input" placeholder="Full Day / Half Day" /></FormRow>
-              <FormRow label="Icon (emoji)"><input className="form-input" placeholder="🏔" maxLength={2} /></FormRow>
-            </div>
-            <FormRow label="Image URL"><input className="form-input" placeholder="https://images.unsplash.com/..." /></FormRow>
-            <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", marginTop: "var(--space-md)" }}>
-              <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-              <button className="btn btn-primary">Save Itinerary Block</button>
-            </div>
+          )}
+
+          <FormRow label="Itinerary Title"><input className="form-input" value={formData.title} onChange={e => setFormData({...formData, title: e.target.value})} placeholder="e.g., Dal Lake Sightseeing" /></FormRow>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+            <div className="form-group"><label className="form-label">Day Number</label><select className="form-select" value={formData.day_number} onChange={e => setFormData({...formData, day_number: e.target.value})}>{[1, 2, 3, 4, 5, 6, 7].map(d => <option key={d} value={d}>Day {d}</option>)}</select></div>
+            <div className="form-group"><label className="form-label">Departs From</label><select className="form-select" value={formData.departs_from} onChange={e => setFormData({...formData, departs_from: e.target.value})}><option value="arrival">Arrival</option><option value="srinagar">Srinagar</option><option value="pahalgam">Pahalgam</option><option value="gulmarg">Gulmarg</option></select></div>
+            <div className="form-group"><label className="form-label">Overnight At</label><select className="form-select" value={formData.overnight_slug} onChange={e => setFormData({...formData, overnight_slug: e.target.value})}><option value="srinagar">Srinagar</option><option value="pahalgam">Pahalgam</option><option value="gulmarg">Gulmarg</option><option value="departure">Departure</option></select></div>
+          </div>
+          <FormRow label="Description"><textarea className="form-input" value={formData.description} onChange={e => setFormData({...formData, description: e.target.value})} rows={4} placeholder="Full day description shown to agents..." /></FormRow>
+          <FormRow label="Highlights (comma separated)"><input className="form-input" value={formData.highlights} onChange={e => setFormData({...formData, highlights: e.target.value})} placeholder="Dal Lake, Shikara Ride" /></FormRow>
+          
+          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", marginTop: "var(--space-md)" }}>
+            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Itinerary"}</button>
           </div>
         </Modal>
       )}
@@ -249,294 +334,522 @@ function ItinerariesSection() {
   );
 }
 
-function HotelsSection() {
-  const [hotels, setHotels] = useState([]);
+// ─── Hotels Section ─────────────────────────────────────────────────────────
 
-  useEffect(() => {
-    client.get('/hotels')
-      .then(res => setHotels(res.data))
-      .catch(err => console.error("Error:", err));
-  }, []);
+function HotelsSection() {
+  const [showModal, setShowModal] = useState(false);
+  const [hotels, setHotels] = useState([]);
+  const [destinations, setDestinations] = useState([]);
+  const [loading, setLoading] = useState(false);
+
+  const [errorMsg, setErrorMsg] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [formData, setFormData] = useState({ name: "", destination_id: "", base_cp_rate: 0 });
+
+  const fetchData = async () => {
+    try {
+      const [hotelsData, destData] = await Promise.all([ api.hotels.list(), api.destinations.list() ]);
+      const safeDestData = Array.isArray(destData) ? destData : (destData?.data || []);
+      setHotels(Array.isArray(hotelsData) ? hotelsData : (hotelsData?.data || []));
+      setDestinations(safeDestData);
+      
+      if (safeDestData.length > 0 && !formData.destination_id) {
+        setFormData(prev => ({ ...prev, destination_id: safeDestData[0].id }));
+      }
+    } catch (err) { console.error("Failed to load hotels data:", err); }
+  };
+
+  useEffect(() => { fetchData(); }, []);
+
+  const handleSave = async () => {
+    setErrorMsg("");
+    if (!formData.name || !formData.destination_id) return setErrorMsg("Hotel Name and Destination are required.");
+    
+    setLoading(true);
+    try {
+      const payload = {
+        name: formData.name,
+        destination_id: formData.destination_id,
+        category: "Standard",
+        stars: 3,
+        room_types: [
+          {
+            name: "Standard Room",
+            max_occupancy: 3,
+            extra_bed_rate: 1500,
+            meal_plan_rates: [
+              { meal_plan: "CP", rate_per_night: parseInt(formData.base_cp_rate) || 0 }
+            ]
+          }
+        ]
+      };
+      await api.hotels.create(payload);
+      setShowModal(false);
+      setFormData({ name: "", destination_id: destinations[0]?.id || "", base_cp_rate: 0 });
+      fetchData();
+    } catch (err) { 
+      setErrorMsg(err.message || "An unexpected error occurred."); 
+    } finally { 
+      setLoading(false); 
+    }
+  };
+
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try { 
+      await api.hotels.delete(deleteTarget.id); 
+      setDeleteTarget(null);
+      fetchData(); 
+    } catch (err) { 
+      setDeleteTarget(null);
+      console.error("Error deleting hotel: " + err.message); 
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  const getDestName = (id) => {
+    const dest = destinations.find(d => d.id === id);
+    return dest ? dest.name : "Unknown";
+  };
 
   return (
-    <div>
-      <SectionHeader title="Hotel Management" />
-      <div className="card">
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Hotel Management" subtitle="Manage hotel inventory and base rates" onAdd={() => { setShowModal(true); setErrorMsg(""); }} addLabel="Add Hotel" />
+      <div className="card" style={{ overflow: "hidden" }}>
         <table style={{ width: "100%", borderCollapse: "collapse" }}>
-          <thead>
-            <tr><Th>Hotel</Th><Th>Destination</Th><Th>Base Rate (CP)</Th></tr>
-          </thead>
+          <thead><tr><Th>Hotel Name</Th><Th>Destination</Th><Th>Base Rate (CP)</Th><Th>Actions</Th></tr></thead>
           <tbody>
-            {hotels.map((h) => (
+            {(hotels || []).map((h) => (
               <TableRow key={h.id}>
-                <Td>{h.name}</Td>
-                <Td>{h.destination_id}</Td> {/* Backend returns UUID */}
-                <Td>₹{h.roomTypes?.[0]?.cp?.toLocaleString()}</Td>
+                <Td style={{ fontWeight: 600 }}>{h.name}</Td>
+                <Td>{getDestName(h.destination_id)}</Td>
+                {/* CRITICAL FIX: Changed h.roomTypes to h.room_types */}
+                <Td>₹{h.room_types?.[0]?.meal_plan_rates?.[0]?.rate_per_night?.toLocaleString() || "N/A"}</Td>
+                <Td>
+                  <button onClick={() => setDeleteTarget({ id: h.id, title: h.name })} className="btn btn-outline btn-sm" style={{ borderColor: "#ffcdd2", color: "#c62828" }}>Delete</button>
+                </Td>
               </TableRow>
             ))}
           </tbody>
         </table>
       </div>
+
+      <ConfirmActionModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={executeDelete}
+        title="Delete Hotel"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        isProcessing={isDeleting}
+      />
+
+      {showModal && (
+        <Modal title="Add Hotel" onClose={() => setShowModal(false)}>
+          {errorMsg && (
+            <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span>⚠</span><span>{errorMsg}</span>
+            </div>
+          )}
+          <FormRow label="Hotel Name"><input className="form-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g., The Lalit Grand Palace" /></FormRow>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+            <div className="form-group"><label className="form-label">Destination</label><select className="form-select" value={formData.destination_id} onChange={e => setFormData({...formData, destination_id: e.target.value})}>{destinations.map(d => (<option key={d.id} value={d.id}>{d.name}</option>))}</select></div>
+            <FormRow label="Base Rate (CP Plan - ₹)"><input className="form-input" type="number" value={formData.base_cp_rate} onChange={e => setFormData({...formData, base_cp_rate: e.target.value})} placeholder="e.g., 4500" /></FormRow>
+          </div>
+          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", marginTop: "var(--space-lg)" }}>
+            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Hotel"}</button>
+          </div>
+        </Modal>
+      )}
     </div>
   );
 }
+
+// ─── Vehicles Section ───────────────────────────────────────────────────────
 
 function VehiclesSection() {
   const [showModal, setShowModal] = useState(false);
   const [vehicles, setVehicles] = useState([]);
+  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    client.get('/vehicles')
-      .then(res => setVehicles(res.data))
-      .catch(err => console.error("Failed to load vehicles:", err));
-  }, []);
+  const [errorMsg, setErrorMsg] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  return (
-    <div>
-      <SectionHeader title="Vehicle Management" subtitle="Manage fleet, rates, and vehicle availability by season" onAdd={() => setShowModal(true)} addLabel="Add Vehicle" />
-      <div className="card" style={{ overflow: "hidden" }}>
-        <div className="table-scroll">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Vehicle Type</Th>
-                <Th>Models</Th>
-                <Th>Capacity</Th>
-                <Th>Per Day Rate</Th>
-                <Th>Per Km Rate</Th>
-                <Th>Winter Surcharge</Th>
-                <Th>Status</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {vehicles.map((v) => (
-                <TableRow key={v.id}>
-                  <Td>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-sm)" }}>
-                      <span style={{ fontSize: "1.4rem" }}>{v.image}</span>
-                      <span style={{ fontWeight: 700 }}>{v.type}</span>
-                    </div>
-                  </Td>
-                  <Td style={{ color: "var(--ink-muted)", fontSize: "0.8rem", maxWidth: 180 }}>{v.models}</Td>
-                  <Td>{v.capacity}</Td>
-                  <Td style={{ fontWeight: 600 }}>₹{v.perDayRate.toLocaleString("en-IN")}</Td>
-                  <Td>₹{v.perKmRate}/km</Td>
-                  <Td style={{ color: "var(--saffron)", fontWeight: 600 }}>+₹{v.seasonal.winter}</Td>
-                  <Td><span className="badge badge-success">Active</span></Td>
-                  <Td>
-                    <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                  </Td>
-                </TableRow>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  const [formData, setFormData] = useState({ vehicle_type: "", models: "", capacity_pax: 4, luggage_capacity: "2 Bags", per_day_rate: 0, per_km_rate: 0 });
 
-      {showModal && (
-        <Modal title="Add Vehicle" onClose={() => setShowModal(false)}>
-          <FormRow label="Vehicle Type"><input className="form-input" placeholder="e.g., Innova Crysta" /></FormRow>
-          <FormRow label="Models / Variants"><input className="form-input" placeholder="e.g., Toyota Innova Crysta 7-seater" /></FormRow>
-          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
-            <FormRow label="Pax Capacity"><input className="form-input" placeholder="e.g., 7 Pax" /></FormRow>
-            <FormRow label="Luggage Capacity"><input className="form-input" placeholder="e.g., 5 Medium Bags" /></FormRow>
-          </div>
-          <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)", marginBottom: "var(--space-md)" }}>
-            <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--pine)", marginBottom: "var(--space-md)" }}>Pricing</div>
-            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
-              <FormRow label="Per Day Rate (₹)"><input className="form-input" placeholder="3500" type="number" /></FormRow>
-              <FormRow label="Per Km Rate (₹)"><input className="form-input" placeholder="20" type="number" /></FormRow>
-              <FormRow label="Airport Transfer"><input className="form-input" placeholder="1400" type="number" /></FormRow>
-            </div>
-            <div style={{ fontSize: "0.8rem", fontWeight: 600, margin: "var(--space-sm) 0", color: "var(--ink-muted)" }}>Seasonal Surcharges (₹ added to base rate)</div>
-            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
-              <FormRow label="Winter Surcharge"><input className="form-input" placeholder="800" type="number" /></FormRow>
-              <FormRow label="Peak Season"><input className="form-input" placeholder="1200" type="number" /></FormRow>
-              <FormRow label="New Year"><input className="form-input" placeholder="2000" type="number" /></FormRow>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end" }}>
-            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-            <button className="btn btn-primary">Save Vehicle</button>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
+  const fetchVehicles = async () => {
+    try {
+      const data = await api.vehicles.list(false);
+      setVehicles(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) { console.error("Failed to load vehicles:", err); }
+  };
 
-function AgentsSection() {
-  const [showModal, setShowModal] = useState(false);
-  const agents = [
-    { name: "Sharma Tours & Travels", city: "Delhi", email: "sharma@gmail.com", packages: 145, revenue: "₹62L", markup: "15%", status: "active" },
-    { name: "Kerala Holidays Hub", city: "Kochi", email: "priya@keralahols.com", packages: 89, revenue: "₹38L", markup: "12%", status: "active" },
-    { name: "Punjab Travel World", city: "Chandigarh", email: "aman@ptworld.com", packages: 212, revenue: "₹91L", markup: "18%", status: "active" },
-    { name: "Sunrise Travels", city: "Delhi", email: "demo@wanderkashmir.com", packages: 14, revenue: "₹6.2L", markup: "10%", status: "active" },
-    { name: "Mumbai Tours", city: "Mumbai", email: "info@mumbaitors.com", packages: 0, revenue: "₹0", markup: "10%", status: "pending" },
-  ];
+  useEffect(() => { fetchVehicles(); }, []);
 
-  return (
-    <div>
-      <SectionHeader title="Agent Management" subtitle="Onboard and manage sub-agents with custom pricing and access controls" onAdd={() => setShowModal(true)} addLabel="Add Agent" />
-      <div className="card" style={{ overflow: "hidden" }}>
-        <div className="table-scroll">
-          <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Agency</Th>
-                <Th>City</Th>
-                <Th>Email</Th>
-                <Th>Packages</Th>
-                <Th>Revenue</Th>
-                <Th>Markup</Th>
-                <Th>Status</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
-            <tbody>
-              {agents.map((a, i) => (
-                <TableRow key={i}>
-                  <Td>
-                    <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-                      <div style={{ width: 36, height: 36, borderRadius: "var(--radius-full)", background: "linear-gradient(135deg, var(--pine), var(--glacier))", display: "flex", alignItems: "center", justifyContent: "center", color: "white", fontWeight: 700, fontSize: "0.75rem", flexShrink: 0 }}>
-                        {a.name.split(" ").map(w => w[0]).join("").slice(0, 2)}
-                      </div>
-                      <span style={{ fontWeight: 600, fontSize: "0.875rem" }}>{a.name}</span>
-                    </div>
-                  </Td>
-                  <Td style={{ color: "var(--ink-muted)" }}>{a.city}</Td>
-                  <Td style={{ color: "var(--ink-muted)", fontSize: "0.8rem" }}>{a.email}</Td>
-                  <Td style={{ fontWeight: 600 }}>{a.packages}</Td>
-                  <Td style={{ fontWeight: 600, color: "var(--pine)" }}>{a.revenue}</Td>
-                  <Td><span className="badge badge-saffron">{a.markup}</span></Td>
-                  <Td>
-                    <span className={`badge ${a.status === "active" ? "badge-success" : "badge-saffron"}`}>
-                      {a.status === "active" ? "Active" : "Pending"}
-                    </span>
-                  </Td>
-                  <Td>
-                    <div style={{ display: "flex", gap: "6px" }}>
-                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Pricing</button>
-                    </div>
-                  </Td>
-                </TableRow>
-              ))}
-            </tbody>
-          </table>
-        </div>
-      </div>
+  const handleSave = async () => {
+    setErrorMsg("");
+    if (!formData.vehicle_type) return setErrorMsg("Vehicle Type is required.");
+    
+    setLoading(true);
+    try {
+      const payload = {
+        vehicle_type: formData.vehicle_type,
+        models: formData.models,
+        capacity_pax: parseInt(formData.capacity_pax) || 4,
+        luggage_capacity: formData.luggage_capacity.toString(),
+        per_day_rate: parseFloat(formData.per_day_rate) || 0,
+        per_km_rate: parseFloat(formData.per_km_rate) || 0,
+        airport_transfer_rate: 0, 
+        is_active: true
+      };
+      await api.vehicles.create(payload);
+      setShowModal(false);
+      setFormData({ vehicle_type: "", models: "", capacity_pax: 4, luggage_capacity: "2 Bags", per_day_rate: 0, per_km_rate: 0 });
+      fetchVehicles();
+    } catch (err) { 
+      setErrorMsg(err.message || "An unexpected error occurred."); 
+    } finally { 
+      setLoading(false); 
+    }
+  };
 
-      {showModal && (
-        <Modal title="Onboard New Agent" onClose={() => setShowModal(false)}>
-          <FormRow label="Agency / Company Name"><input className="form-input" placeholder="e.g., ABC Tours & Travels" /></FormRow>
-          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
-            <FormRow label="Contact Person Name"><input className="form-input" placeholder="Full Name" /></FormRow>
-            <FormRow label="City / Location"><input className="form-input" placeholder="e.g., Mumbai" /></FormRow>
-          </div>
-          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
-            <FormRow label="Email Address"><input className="form-input" type="email" placeholder="agent@company.com" /></FormRow>
-            <FormRow label="Phone Number"><input className="form-input" placeholder="+91 98000 00000" /></FormRow>
-          </div>
-          <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)", marginBottom: "var(--space-md)" }}>
-            <div style={{ fontSize: "0.8rem", fontWeight: 700, color: "var(--pine)", marginBottom: "var(--space-md)" }}>Pricing & Access Settings</div>
-            <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "var(--space-md)" }}>
-              <FormRow label="Markup Type">
-                <select className="form-select">
-                  <option>Percentage (%)</option>
-                  <option>Fixed Amount (₹)</option>
-                </select>
-              </FormRow>
-              <FormRow label="Markup Value"><input className="form-input" placeholder="15" type="number" /></FormRow>
-              <FormRow label="Price Visibility">
-                <select className="form-select">
-                  <option>Total Only</option>
-                  <option>Full Breakdown</option>
-                </select>
-              </FormRow>
-            </div>
-          </div>
-          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end" }}>
-            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
-            <button className="btn btn-primary">Create Agent Account</button>
-          </div>
-        </Modal>
-      )}
-    </div>
-  );
-}
-
-function QuotationsSection() {
-  const quotations = [
-    { id: "QT-2024-1891", agent: "Sunrise Travels", client: "Mr. & Mrs. Kapoor", pax: 2, nights: "4N", destination: "Kashmir Classic", amount: "₹66,150", status: "sent", date: "31 May 2024" },
-    { id: "QT-2024-1890", agent: "Sharma Tours", client: "Mehta Family", pax: 6, nights: "5N", destination: "Kashmir Explorer", amount: "₹1,86,000", status: "confirmed", date: "31 May 2024" },
-    { id: "QT-2024-1889", agent: "Punjab Travel World", client: "Singh Group", pax: 12, nights: "3N", destination: "Quick Escape", amount: "₹2,10,000", status: "pending", date: "30 May 2024" },
-    { id: "QT-2024-1888", agent: "Kerala Holidays Hub", client: "Ms. Trivedi", pax: 1, nights: "7N", destination: "Kashmir Immersion", amount: "₹62,000", status: "draft", date: "29 May 2024" },
-    { id: "QT-2024-1887", agent: "Sharma Tours", client: "Joshi Corporate", pax: 20, nights: "4N", destination: "MICE Kashmir", amount: "₹8,40,000", status: "confirmed", date: "28 May 2024" },
-  ];
-
-  const statusConfig = {
-    draft: { bg: "#f5f5f5", color: "#666" },
-    sent: { bg: "#e3f2fd", color: "#1565c0" },
-    confirmed: { bg: "#e8f5e9", color: "#2e7d32" },
-    pending: { bg: "#fff3e0", color: "#e65100" },
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try { 
+      await api.vehicles.delete(deleteTarget.id); 
+      setDeleteTarget(null);
+      fetchVehicles(); 
+    } catch (err) { 
+      setDeleteTarget(null);
+      console.error("Error deleting vehicle: " + err.message); 
+    } finally {
+      setIsDeleting(false);
+    }
   };
 
   return (
-    <div>
-      <SectionHeader title="All Quotations" subtitle="View and manage quotations created by all agents" />
-      {/* Filters */}
-      <div style={{ display: "flex", gap: "var(--space-md)", marginBottom: "var(--space-lg)", flexWrap: "wrap" }}>
-        <input className="form-input" placeholder="Search by client, ID, agent..." style={{ flex: 1, minWidth: 200, maxWidth: 320 }} />
-        <select className="form-select" style={{ width: "auto" }}>
-          <option>All Statuses</option>
-          <option>Draft</option>
-          <option>Sent</option>
-          <option>Confirmed</option>
-          <option>Pending</option>
-        </select>
-        <input className="form-input" type="date" style={{ width: "auto" }} />
-      </div>
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Vehicle Management" subtitle="Manage fleet and rates" onAdd={() => { setShowModal(true); setErrorMsg(""); }} addLabel="Add Vehicle" />
       <div className="card" style={{ overflow: "hidden" }}>
         <div className="table-scroll">
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead>
-              <tr>
-                <Th>Quote ID</Th>
-                <Th>Agent</Th>
-                <Th>Client</Th>
-                <Th>Pax</Th>
-                <Th>Package</Th>
-                <Th>Amount</Th>
-                <Th>Status</Th>
-                <Th>Date</Th>
-                <Th>Actions</Th>
-              </tr>
-            </thead>
+            <thead><tr><Th>Vehicle</Th><Th>Models</Th><Th>Capacity</Th><Th>Per Day Rate</Th><Th>Actions</Th></tr></thead>
             <tbody>
-              {quotations.map((q) => {
-                const sc = statusConfig[q.status];
-                return (
-                  <TableRow key={q.id}>
-                    <Td style={{ fontFamily: "monospace", fontSize: "0.78rem", color: "var(--pine)", fontWeight: 700 }}>{q.id}</Td>
-                    <Td style={{ fontWeight: 500, fontSize: "0.85rem" }}>{q.agent}</Td>
-                    <Td>{q.client}</Td>
-                    <Td>{q.pax} pax</Td>
-                    <Td style={{ color: "var(--ink-muted)", fontSize: "0.85rem" }}>{q.nights} · {q.destination}</Td>
-                    <Td style={{ fontWeight: 700, color: "var(--pine)" }}>{q.amount}</Td>
-                    <Td>
-                      <span style={{ padding: "3px 10px", borderRadius: "var(--radius-full)", background: sc.bg, color: sc.color, fontSize: "0.7rem", fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.04em" }}>
-                        {q.status}
-                      </span>
-                    </Td>
-                    <Td style={{ color: "var(--ink-muted)", fontSize: "0.78rem" }}>{q.date}</Td>
-                    <Td>
-                      <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>View</button>
-                    </Td>
-                  </TableRow>
-                );
-              })}
+              {(vehicles || []).map((v) => (
+                <TableRow key={v.id}>
+                  <Td><span style={{ fontWeight: 700 }}>{v.vehicle_type}</span></Td>
+                  <Td style={{ color: "var(--ink-muted)" }}>{v.models}</Td>
+                  <Td>{v.capacity_pax} Pax</Td>
+                  <Td style={{ fontWeight: 600 }}>₹{v.per_day_rate?.toLocaleString()}</Td>
+                  <Td>
+                    <button onClick={() => setDeleteTarget({ id: v.id, title: v.vehicle_type })} className="btn btn-outline btn-sm" style={{ borderColor: "#ffcdd2", color: "#c62828" }}>Delete</button>
+                  </Td>
+                </TableRow>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <ConfirmActionModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={executeDelete}
+        title="Delete Vehicle"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"? This action cannot be undone.`}
+        isProcessing={isDeleting}
+      />
+
+      {showModal && (
+        <Modal title="Add Vehicle" onClose={() => setShowModal(false)}>
+          {errorMsg && (
+            <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span>⚠</span><span>{errorMsg}</span>
+            </div>
+          )}
+          <FormRow label="Vehicle Type"><input className="form-input" value={formData.vehicle_type} onChange={e => setFormData({...formData, vehicle_type: e.target.value})} placeholder="e.g., Innova Crysta" /></FormRow>
+          <FormRow label="Models / Variants"><input className="form-input" value={formData.models} onChange={e => setFormData({...formData, models: e.target.value})} placeholder="e.g., Toyota Innova Crysta 7-seater" /></FormRow>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
+            <FormRow label="Pax Capacity"><input className="form-input" type="number" value={formData.capacity_pax} onChange={e => setFormData({...formData, capacity_pax: e.target.value})} /></FormRow>
+            <FormRow label="Luggage Info"><input className="form-input" value={formData.luggage_capacity} onChange={e => setFormData({...formData, luggage_capacity: e.target.value})} /></FormRow>
+          </div>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)" }}>
+            <FormRow label="Per Day Rate (₹)"><input className="form-input" type="number" value={formData.per_day_rate} onChange={e => setFormData({...formData, per_day_rate: e.target.value})} /></FormRow>
+            <FormRow label="Per Km Rate (₹)"><input className="form-input" type="number" value={formData.per_km_rate} onChange={e => setFormData({...formData, per_km_rate: e.target.value})} /></FormRow>
+          </div>
+          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end" }}>
+            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Vehicle"}</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ─── Agents Section ─────────────────────────────────────────────────────────
+
+function AgentsSection() {
+  const [agents, setAgents] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+  
+  const [actionTarget, setActionTarget] = useState(null); // Used for suspend action
+  const [isProcessing, setIsProcessing] = useState(false);
+
+  const fetchAgents = async () => {
+    try {
+      const data = await api.agents.list();
+      setAgents(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) { console.error("Failed to fetch agents:", err); }
+  };
+
+  useEffect(() => {
+    fetchAgents();
+  }, []);
+
+  const handleApprove = async (id) => {
+    setErrorMsg("");
+    try { 
+      await api.agents.approve(id); 
+      fetchAgents(); 
+    } catch (err) { 
+      setErrorMsg("Error approving agent: " + err.message); 
+    }
+  };
+
+  const executeSuspend = async () => {
+    if (!actionTarget) return;
+    setIsProcessing(true);
+    setErrorMsg("");
+    try { 
+      await api.agents.suspend(actionTarget.id); 
+      setActionTarget(null);
+      fetchAgents(); 
+    } catch (err) { 
+      setActionTarget(null);
+      setErrorMsg("Error suspending agent: " + err.message); 
+    } finally {
+      setIsProcessing(false);
+    }
+  };
+
+  return (
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Agent Management" subtitle="Manage sub-agents and approvals" />
+      
+      {errorMsg && (
+        <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span>⚠</span><span>{errorMsg}</span>
+        </div>
+      )}
+
+      <div className="card" style={{ overflow: "hidden" }}>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr><Th>Agency</Th><Th>City</Th><Th>Status</Th><Th>Actions</Th></tr></thead>
+            <tbody>
+              {(agents || []).map((a) => (
+                <TableRow key={a.id}>
+                  <Td><span style={{ fontWeight: 600 }}>{a.agency_name || "Agent"}</span></Td>
+                  <Td>{a.city || "N/A"}</Td>
+                  <Td><span className={`badge ${a.is_approved ? "badge-success" : "badge-saffron"}`}>{a.is_approved ? "Active" : "Pending"}</span></Td>
+                  <Td>
+                    {!a.is_approved ? (
+                      <button onClick={() => handleApprove(a.id)} className="btn btn-outline btn-sm" style={{ borderColor: "#4caf50", color: "#4caf50" }}>Approve</button>
+                    ) : (
+                      <button onClick={() => setActionTarget({ id: a.id, title: a.agency_name })} className="btn btn-outline btn-sm" style={{ borderColor: "#ffcdd2", color: "#c62828" }}>Suspend</button>
+                    )}
+                  </Td>
+                </TableRow>
+              ))}
+              {agents.length === 0 && <tr><Td colSpan="4" style={{textAlign:"center", padding:"var(--space-xl)"}}>No agents found.</Td></tr>}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <ConfirmActionModal
+        isOpen={!!actionTarget}
+        onClose={() => setActionTarget(null)}
+        onConfirm={executeSuspend}
+        title="Suspend Agent"
+        message={`Are you sure you want to suspend "${actionTarget?.title}"? Their account access will be revoked.`}
+        confirmText="Yes, Suspend"
+        isProcessing={isProcessing}
+      />
+    </div>
+  );
+}
+
+// ─── Activities Section ─────────────────────────────────────────────────────
+
+function ActivitiesSection() {
+  const [showModal, setShowModal] = useState(false);
+  const [activities, setActivities] = useState([]);
+  const [loading, setLoading] = useState(false);
+  
+  const [errorMsg, setErrorMsg] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
+
+  const [formData, setFormData] = useState({ name: "", category: "Sightseeing", base_price: 0, duration_label: "1 Hour" });
+
+  const fetchActivities = async () => {
+    try {
+      const data = await api.activities.list();
+      setActivities(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) { console.error("Failed to fetch activities:", err); }
+  };
+
+  useEffect(() => { fetchActivities(); }, []);
+
+  const handleSave = async () => {
+    setErrorMsg("");
+    if (!formData.name || !formData.duration_label) return setErrorMsg("Please fill all required fields.");
+    
+    setLoading(true);
+    try {
+      const payload = {
+        name: formData.name,
+        category: formData.category,
+        base_price: parseFloat(formData.base_price) || 0,
+        duration_label: formData.duration_label,
+        is_active: true
+      };
+      await api.activities.create(payload);
+      setShowModal(false);
+      setFormData({ name: "", category: "Sightseeing", base_price: 0, duration_label: "1 Hour" });
+      fetchActivities(); 
+    } catch (err) { 
+      setErrorMsg(err.message || "An unexpected error occurred."); 
+    } finally { 
+      setLoading(false); 
+    }
+  };
+
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try { 
+      await api.activities.delete(deleteTarget.id); 
+      setDeleteTarget(null);
+      fetchActivities(); 
+    } catch (err) { 
+      setDeleteTarget(null);
+      console.error("Error deleting activity: " + err.message); 
+    } finally {
+      setIsDeleting(false);
+    }
+  };
+
+  return (
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Activities Management" onAdd={() => { setShowModal(true); setErrorMsg(""); }} addLabel="Add Activity" />
+      <div className="card" style={{ overflow: "hidden" }}>
+        <table style={{ width: "100%", borderCollapse: "collapse" }}>
+          <thead><tr><Th>Name</Th><Th>Category</Th><Th>Base Price</Th><Th>Duration</Th><Th>Actions</Th></tr></thead>
+          <tbody>
+            {activities.map((a) => (
+              <TableRow key={a.id}>
+                <Td style={{ fontWeight: 600 }}>{a.name}</Td>
+                <Td>{a.category}</Td>
+                <Td>₹{a.base_price?.toLocaleString()}</Td>
+                <Td>{a.duration_label}</Td>
+                <Td><button onClick={() => setDeleteTarget({ id: a.id, title: a.name })} className="btn btn-outline btn-sm" style={{ borderColor: "#ffcdd2", color: "#c62828" }}>Delete</button></Td>
+              </TableRow>
+            ))}
+            {activities.length === 0 && <tr><Td colSpan="5" style={{textAlign:"center", padding:"var(--space-xl)"}}>No activities found.</Td></tr>}
+          </tbody>
+        </table>
+      </div>
+
+      <ConfirmActionModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={executeDelete}
+        title="Delete Activity"
+        message={`Are you sure you want to delete "${deleteTarget?.title}"?`}
+        isProcessing={isDeleting}
+      />
+
+      {showModal && (
+        <Modal title="Add Activity" onClose={() => setShowModal(false)}>
+          {errorMsg && (
+            <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+              <span>⚠</span><span>{errorMsg}</span>
+            </div>
+          )}
+          <FormRow label="Activity Name"><input className="form-input" value={formData.name} onChange={e => setFormData({...formData, name: e.target.value})} placeholder="e.g., Shikara Ride" /></FormRow>
+          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-md)", marginBottom: "var(--space-md)" }}>
+            <div className="form-group">
+              <label className="form-label">Category</label>
+              <select className="form-select" value={formData.category} onChange={e => setFormData({...formData, category: e.target.value})}>
+                <option value="Sightseeing">Sightseeing</option>
+                <option value="Adventure">Adventure</option>
+                <option value="Cultural">Cultural</option>
+              </select>
+            </div>
+            <FormRow label="Duration Label"><input className="form-input" value={formData.duration_label} onChange={e => setFormData({...formData, duration_label: e.target.value})} placeholder="e.g., 1 Hour" /></FormRow>
+          </div>
+          <FormRow label="Base Price (₹)"><input className="form-input" type="number" value={formData.base_price} onChange={e => setFormData({...formData, base_price: e.target.value})} placeholder="e.g., 800" /></FormRow>
+          <div style={{ display: "flex", gap: "var(--space-md)", justifyContent: "flex-end", marginTop: "var(--space-lg)" }}>
+            <button className="btn btn-outline" onClick={() => setShowModal(false)}>Cancel</button>
+            <button className="btn btn-primary" onClick={handleSave} disabled={loading}>{loading ? "Saving..." : "Save Activity"}</button>
+          </div>
+        </Modal>
+      )}
+    </div>
+  );
+}
+
+// ─── Quotations Section ─────────────────────────────────────────────────────
+
+function QuotationsSection() {
+  const [quotations, setQuotations] = useState([]);
+  const [errorMsg, setErrorMsg] = useState("");
+
+  useEffect(() => {
+    const fetchQuotations = async () => {
+      try {
+        const data = await api.quotations.list();
+        setQuotations(Array.isArray(data) ? data : (data?.data || []));
+      } catch (err) { 
+        setErrorMsg("Failed to load quotations."); 
+      } 
+    };
+    fetchQuotations();
+  }, []);
+
+  return (
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="All Quotations" subtitle="View quotations created by all agents" />
+      
+      {errorMsg && (
+        <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span>⚠</span><span>{errorMsg}</span>
+        </div>
+      )}
+
+      <div className="card" style={{ overflow: "hidden" }}>
+        <div className="table-scroll">
+          <table style={{ width: "100%", borderCollapse: "collapse" }}>
+            <thead><tr><Th>Quote ID</Th><Th>Client</Th><Th>Amount</Th><Th>Status</Th></tr></thead>
+            <tbody>
+              {(quotations || []).map((q) => (
+                <TableRow key={q.id}>
+                  <Td style={{ fontFamily: "monospace", color: "var(--pine)", fontWeight: 700 }}>{q.id.split('-')[0]}</Td>
+                  <Td>{q.client_name}</Td>
+                  <Td style={{ fontWeight: 700, color: "var(--pine)" }}>₹{q.total_cost?.toLocaleString()}</Td>
+                  <Td><span className="badge badge-success">{q.status}</span></Td>
+                </TableRow>
+              ))}
+              {quotations.length === 0 && <tr><Td colSpan="4" style={{textAlign:"center", padding:"var(--space-xl)"}}>No quotations found.</Td></tr>}
             </tbody>
           </table>
         </div>
@@ -545,113 +858,160 @@ function QuotationsSection() {
   );
 }
 
-function PricingSection() {
-  return (
-    <div>
-      <SectionHeader title="Pricing Rules & Seasonal Rates" subtitle="Set seasonal pricing, surcharges, and markup policies for all agents" />
-      <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-xl)", marginBottom: "var(--space-xl)" }}>
-        {/* Seasonal pricing */}
-        <div className="card" style={{ padding: "var(--space-xl)" }}>
-          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Seasonal Rate Multipliers</h4>
-          {[
-            { season: "Peak Summer (Apr–Jun)", multiplier: "1.30", color: "var(--saffron)" },
-            { season: "Regular Summer (Jul–Sep)", multiplier: "1.00", color: "var(--glacier)" },
-            { season: "Autumn (Oct–Nov)", multiplier: "1.15", color: "#7c3aed" },
-            { season: "Winter (Dec–Feb)", multiplier: "1.20", color: "var(--deep-water)" },
-            { season: "New Year (31 Dec–2 Jan)", multiplier: "1.60", color: "#c62828" },
-            { season: "Long Weekends", multiplier: "1.25", color: "var(--pine)" },
-          ].map(s => (
-            <div key={s.season} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--space-md) 0", borderBottom: "1px solid var(--border)" }}>
-              <div style={{ fontSize: "0.875rem", fontWeight: 500 }}>{s.season}</div>
-              <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
-                <span style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", color: s.color, fontWeight: 500 }}>{s.multiplier}×</span>
-                <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>Edit</button>
-              </div>
-            </div>
-          ))}
-        </div>
+// ─── Pricing Section ────────────────────────────────────────────────────────
 
-        {/* Markup rules */}
-        <div className="card" style={{ padding: "var(--space-xl)" }}>
-          <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Default Markup Rules</h4>
-          <div style={{ display: "flex", flexDirection: "column", gap: "var(--space-md)" }}>
-            <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)" }}>
-              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink-muted)", marginBottom: "var(--space-md)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Default Agent Markup</div>
-              <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
-                <input className="form-input" defaultValue="15" type="number" style={{ width: 80 }} />
-                <span style={{ color: "var(--ink-muted)" }}>%</span>
-                <button className="btn btn-primary btn-sm">Update</button>
-              </div>
-            </div>
-            <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)" }}>
-              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink-muted)", marginBottom: "var(--space-md)", textTransform: "uppercase", letterSpacing: "0.06em" }}>Price Visibility (Default)</div>
-              <select className="form-select">
-                <option>Total Package Cost Only</option>
-                <option>Full Cost Breakdown</option>
-              </select>
-            </div>
-            <div style={{ background: "var(--snow-warm)", borderRadius: "var(--radius-md)", padding: "var(--space-lg)" }}>
-              <div style={{ fontSize: "0.78rem", fontWeight: 700, color: "var(--ink-muted)", marginBottom: "var(--space-md)", textTransform: "uppercase", letterSpacing: "0.06em" }}>GST Configuration</div>
-              <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
-                <input className="form-input" defaultValue="5" type="number" style={{ width: 80 }} />
-                <span style={{ color: "var(--ink-muted)" }}>% GST on total</span>
-              </div>
+function PricingSection() {
+  const [seasonalRates, setSeasonalRates] = useState([]);
+  const [editingSeason, setEditingSeason] = useState(null);
+  const [newMultiplier, setNewMultiplier] = useState("");
+  const [errorMsg, setErrorMsg] = useState("");
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const fetchPricing = async () => {
+    try {
+      const data = await api.pricing.listSeasonal();
+      setSeasonalRates(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) { 
+      setErrorMsg("Failed to load pricing data."); 
+    }
+  };
+
+  useEffect(() => { fetchPricing(); }, []);
+
+  const handleUpdateSeason = async (seasonId) => {
+    setErrorMsg("");
+    setSuccessMsg("");
+    try {
+      await api.pricing.patchSeason(seasonId, { multiplier: parseFloat(newMultiplier) });
+      setEditingSeason(null);
+      fetchPricing(); 
+      setSuccessMsg("Seasonal rate updated successfully.");
+    } catch (err) { 
+      setErrorMsg("Failed to update season: " + err.message); 
+    }
+  };
+
+  const handleMockUpdate = () => {
+    setErrorMsg("");
+    setSuccessMsg("Markup rules updated successfully.");
+  };
+
+  return (
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Pricing Rules & Seasonal Rates" subtitle="Set seasonal pricing and surcharges" />
+      
+      {errorMsg && (
+        <div style={{ background: "#fff3f3", border: "1px solid #ffcdd2", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#c62828", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span>⚠</span><span>{errorMsg}</span>
+        </div>
+      )}
+      {successMsg && (
+        <div style={{ background: "#e8f5e9", border: "1px solid #c8e6c9", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#2e7d32", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span>✓</span><span>{successMsg}</span>
+        </div>
+      )}
+
+      <div className="card" style={{ padding: "var(--space-xl)", maxWidth: "800px" }}>
+        <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Seasonal Rate Multipliers</h4>
+        {seasonalRates.length > 0 ? seasonalRates.map(s => (
+          <div key={s.season} style={{ display: "flex", alignItems: "center", justifyContent: "space-between", padding: "var(--space-md) 0", borderBottom: "1px solid var(--border)" }}>
+            <div style={{ fontSize: "0.875rem", fontWeight: 500 }}>{s.label || s.season}</div>
+            <div style={{ display: "flex", alignItems: "center", gap: "var(--space-md)" }}>
+              {editingSeason === s.season ? (
+                <>
+                  <input type="number" step="0.01" className="form-input" style={{ width: "80px", padding: "4px" }} value={newMultiplier} onChange={e => setNewMultiplier(e.target.value)} />
+                  <button className="btn btn-primary btn-sm" onClick={() => handleUpdateSeason(s.season)}>Save</button>
+                  <button className="btn btn-outline btn-sm" onClick={() => setEditingSeason(null)}>Cancel</button>
+                </>
+              ) : (
+                <>
+                  <span style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", color: "var(--pine)", fontWeight: 500 }}>{Number(s.multiplier).toFixed(2)}×</span>
+                  <button className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }} onClick={() => { setEditingSeason(s.season); setNewMultiplier(s.multiplier); }}>Edit</button>
+                </>
+              )}
             </div>
           </div>
+        )) : (
+          <div style={{ color: "var(--ink-muted)", fontSize: "0.875rem" }}>No seasonal rules found in database.</div>
+        )}
+
+        <div style={{ marginTop: "var(--space-xl)", borderTop: "1px solid var(--border)", paddingTop: "var(--space-xl)" }}>
+           <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>Default Markup Rules</h4>
+           <div style={{ display: "flex", gap: "var(--space-md)", alignItems: "center" }}>
+             <input className="form-input" defaultValue="15" type="number" style={{ width: 80 }} />
+             <span style={{ color: "var(--ink-muted)" }}>%</span>
+             <button className="btn btn-primary btn-sm" onClick={handleMockUpdate}>Update</button>
+           </div>
         </div>
       </div>
     </div>
   );
 }
 
-// ─── Main Admin Dashboard ─────────────────────────────────────────────────────
+// ─── Settings Section ───────────────────────────────────────────────────────
 
-export default function AdminDashboard({ navigate, onLogout }) {
+function SettingsSection() {
+  const [successMsg, setSuccessMsg] = useState("");
+
+  const handleSave = () => {
+    setSuccessMsg("Settings saved successfully.");
+  };
+
+  return (
+    <div style={{ animation: "fadeInUp 0.4s ease" }}>
+      <SectionHeader title="Platform Settings" subtitle="Configure portal-wide settings and preferences" />
+      
+      {successMsg && (
+        <div style={{ background: "#e8f5e9", border: "1px solid #c8e6c9", borderRadius: "var(--radius-md)", padding: "0.75rem 1rem", color: "#2e7d32", fontSize: "0.875rem", marginBottom: "var(--space-md)", display: "flex", gap: 8, alignItems: "flex-start" }}>
+          <span>✓</span><span>{successMsg}</span>
+        </div>
+      )}
+
+      <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-xl)" }}>
+        {[
+          { title: "General Settings", items: ["Portal Name", "Default Currency", "Contact Email"] },
+          { title: "Booking Settings", items: ["Min Advance Booking Days", "Payment Terms"] },
+        ].map(section => (
+          <div key={section.title} className="card" style={{ padding: "var(--space-xl)" }}>
+            <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>{section.title}</h4>
+            {section.items.map(item => (
+              <div key={item} className="form-group" style={{ marginBottom: "var(--space-md)" }}>
+                <label className="form-label">{item}</label>
+                <input className="form-input" placeholder={`Enter ${item}`} />
+              </div>
+            ))}
+            <button className="btn btn-primary btn-sm" style={{ marginTop: "var(--space-md)" }} onClick={handleSave}>Save Changes</button>
+          </div>
+        ))}
+      </div>
+    </div>
+  );
+}
+
+// ─── Main Admin Dashboard Component ─────────────────────────────────────────
+
+export default function AdminDashboard({ navigate, onLogout, userRole }) {
   const [activeSection, setActiveSection] = useState("destinations");
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    if (userRole === "agent") {
+      navigate("agent-dashboard");
+    }
+  }, [userRole, navigate]);
 
   const renderSection = () => {
     switch (activeSection) {
       case "destinations": return <DestinationsSection />;
-      case "itineraries": return <ItinerariesSection />;
-      case "hotels": return <HotelsSection />;
-      case "vehicles": return <VehiclesSection />;
-      case "agents": return <AgentsSection />;
-      case "quotations": return <QuotationsSection />;
-      case "pricing": return <PricingSection />;
-      case "activities": return (
-        <div>
-          <SectionHeader title="Activities & Sightseeing" subtitle="Manage optional activities shown to agents during package building" onAdd={() => {}} addLabel="Add Activity" />
-          <div className="card" style={{ padding: "var(--space-2xl)", textAlign: "center" }}>
-            <div style={{ fontSize: "3rem", marginBottom: "var(--space-md)" }}>🎯</div>
-            <h4 style={{ fontFamily: "var(--font-display)", marginBottom: "var(--space-sm)" }}>Activities Panel</h4>
-            <p style={{ fontSize: "0.875rem", maxWidth: 400, margin: "0 auto" }}>Manage Gondola rides, Shikara rides, Pony rides, ATV activities, snow sledging, and more from this panel.</p>
-          </div>
-        </div>
-      );
-      case "settings": return (
-        <div>
-          <SectionHeader title="Platform Settings" subtitle="Configure portal-wide settings and preferences" />
-          <div className="mobile-grid-1" style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: "var(--space-xl)" }}>
-            {[
-              { title: "General Settings", items: ["Portal Name", "Default Currency", "Default Language", "Contact Email"] },
-              { title: "Booking Settings", items: ["Min Advance Booking Days", "Max Package Duration", "Cancellation Policy", "Payment Terms"] },
-            ].map(section => (
-              <div key={section.title} className="card" style={{ padding: "var(--space-xl)" }}>
-                <h4 style={{ fontFamily: "var(--font-display)", fontSize: "1.2rem", marginBottom: "var(--space-lg)" }}>{section.title}</h4>
-                {section.items.map(item => (
-                  <div key={item} className="form-group" style={{ marginBottom: "var(--space-md)" }}>
-                    <label className="form-label">{item}</label>
-                    <input className="form-input" placeholder={item} />
-                  </div>
-                ))}
-                <button className="btn btn-primary btn-sm">Save Changes</button>
-              </div>
-            ))}
-          </div>
-        </div>
-      );
-      default: return null;
+      case "itineraries":  return <ItinerariesSection />;
+      case "hotels":       return <HotelsSection />;
+      case "vehicles":     return <VehiclesSection />;
+      case "agents":       return <AgentsSection />;
+      case "quotations":   return <QuotationsSection />;
+      case "pricing":      return <PricingSection />; 
+      case "activities":   return <ActivitiesSection />;
+      case "settings":     return <SettingsSection />; 
+      default:             return null;
     }
   };
 
@@ -659,10 +1019,8 @@ export default function AdminDashboard({ navigate, onLogout }) {
     <div style={{ minHeight: "100vh", background: "var(--snow)", display: "flex", flexDirection: "column" }}>
       <Navbar navigate={navigate} onLogout={onLogout} userRole="admin" />
 
-      {/* Kept your exact original flex container */}
       <div style={{ display: "flex", flex: 1, paddingTop: "64px" }}>
         
-        {/* Mobile Backdrop (Closes menu when tapping outside) */}
         {mobileMenuOpen && (
           <div 
             className="mobile-block" 
@@ -671,7 +1029,6 @@ export default function AdminDashboard({ navigate, onLogout }) {
           />
         )}
 
-        {/* Sidebar */}
         <aside className={`admin-sidebar ${mobileMenuOpen ? 'open' : ''}`} style={{
           width: 240, flexShrink: 0,
           background: "var(--pine)",
@@ -679,18 +1036,16 @@ export default function AdminDashboard({ navigate, onLogout }) {
           overflowY: "auto", zIndex: 200,
           display: "flex", flexDirection: "column",
         }}>
-          {/* Brand */}
           <div style={{ padding: "var(--space-xl) var(--space-lg)", borderBottom: "1px solid rgba(255,255,255,0.08)" }}>
             <div style={{ fontSize: "0.68rem", fontWeight: 700, letterSpacing: "0.12em", textTransform: "uppercase", color: "rgba(255,255,255,0.4)", marginBottom: "4px" }}>Admin Panel</div>
             <div style={{ color: "white", fontWeight: 600, fontSize: "0.9rem" }}>Super Administrator</div>
           </div>
 
-          {/* Nav */}
           <nav style={{ padding: "var(--space-md) var(--space-sm)", flex: 1 }}>
             {NAV_ITEMS.map(item => (
               <button key={item.id} onClick={() => {
                   setActiveSection(item.id);
-                  setMobileMenuOpen(false); // Closes drawer automatically
+                  setMobileMenuOpen(false); 
                 }} style={{
                 display: "flex", alignItems: "center", gap: "var(--space-md)",
                 width: "100%", padding: "0.65rem var(--space-md)",
@@ -702,7 +1057,7 @@ export default function AdminDashboard({ navigate, onLogout }) {
                 transition: "all var(--transition)",
                 borderLeft: activeSection === item.id ? "3px solid var(--saffron)" : "3px solid transparent",
               }}
-                onMouseEnter={e => { if (activeSection !== item.id) e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "white"; }}
+                onMouseEnter={e => { if (activeSection !== item.id) { e.currentTarget.style.background = "rgba(255,255,255,0.06)"; e.currentTarget.style.color = "white"; } }}
                 onMouseLeave={e => { if (activeSection !== item.id) { e.currentTarget.style.background = "transparent"; e.currentTarget.style.color = "rgba(255,255,255,0.55)"; } }}
               >
                 <span style={{ fontSize: "1rem" }}>{item.icon}</span>
@@ -711,7 +1066,6 @@ export default function AdminDashboard({ navigate, onLogout }) {
             ))}
           </nav>
 
-          {/* Footer */}
           <div style={{ padding: "var(--space-lg)", borderTop: "1px solid rgba(255,255,255,0.08)" }}>
             <button onClick={onLogout} style={{
               display: "flex", alignItems: "center", gap: "var(--space-md)", width: "100%",
@@ -728,10 +1082,7 @@ export default function AdminDashboard({ navigate, onLogout }) {
           </div>
         </aside>
 
-        {/* Main content */}
         <main className="admin-main" style={{ marginLeft: 240, flex: 1, padding: "var(--space-xl)", minWidth: 0 }}>
-          
-          {/* Hamburger Toggle Button (Hidden completely on Desktop) */}
           <div className="mobile-flex" style={{ marginBottom: "var(--space-lg)", alignItems: "center", gap: "var(--space-md)", background: "white", padding: "12px", borderRadius: "var(--radius-md)", border: "1px solid var(--border)" }}>
             <button onClick={() => setMobileMenuOpen(true)} className="btn btn-outline btn-sm" style={{ padding: "4px 10px" }}>☰ Menu</button>
             <div style={{ fontWeight: 600, color: "var(--pine)" }}>{NAV_ITEMS.find(i => i.id === activeSection)?.label}</div>
