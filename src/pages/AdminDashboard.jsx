@@ -28,13 +28,19 @@ function SectionHeader({ title, subtitle, onAdd, addLabel = "Add New" }) {
   );
 }
 
-function TableRow({ children }) {
+function TableRow({ children, onClick, style = {} }) {
   const [hovered, setHovered] = useState(false);
   return (
     <tr
+      onClick={onClick}
       onMouseEnter={() => setHovered(true)}
       onMouseLeave={() => setHovered(false)}
-      style={{ background: hovered ? "var(--snow-warm)" : "white", transition: "background var(--transition)" }}
+      style={{ 
+        background: hovered ? "var(--snow-warm)" : "white", 
+        transition: "background var(--transition)",
+        cursor: onClick ? "pointer" : "default",
+        ...style 
+      }}
     >
       {children}
     </tr>
@@ -605,10 +611,11 @@ function AgentsSection() {
   const fetchAgents = async () => {
     try {
       const data = await api.agents.list();
-      setAgents(Array.isArray(data) ? data : (data?.data || []));
+      setAgents(Array.isArray(data) ? data : (data?.items || data?.data || []));
     } catch (err) { console.error("Failed to fetch agents:", err); }
   };
 
+  
   useEffect(() => {
     fetchAgents();
   }, []);
@@ -810,21 +817,42 @@ function ActivitiesSection() {
 
 // ─── Quotations Section ─────────────────────────────────────────────────────
 
-function QuotationsSection() {
+// ─── Quotations Section ─────────────────────────────────────────────────────
+
+// 1. Add { navigate } to the props here
+// ─── Quotations Section ─────────────────────────────────────────────────────
+
+function QuotationsSection({ navigate }) {
   const [quotations, setQuotations] = useState([]);
   const [errorMsg, setErrorMsg] = useState("");
+  const [deleteTarget, setDeleteTarget] = useState(null);
+  const [isDeleting, setIsDeleting] = useState(false);
 
-  useEffect(() => {
-    const fetchQuotations = async () => {
-      try {
-        const data = await api.quotations.list();
-        setQuotations(Array.isArray(data) ? data : (data?.data || []));
-      } catch (err) { 
-        setErrorMsg("Failed to load quotations."); 
-      } 
-    };
-    fetchQuotations();
-  }, []);
+  const fetchQuotations = async () => {
+    try {
+      const data = await api.quotations.list();
+      setQuotations(Array.isArray(data) ? data : (data?.data || []));
+    } catch (err) { 
+      setErrorMsg("Failed to load quotations."); 
+    } 
+  };
+
+  useEffect(() => { fetchQuotations(); }, []);
+
+  const executeDelete = async () => {
+    if (!deleteTarget) return;
+    setIsDeleting(true);
+    try {
+      await api.quotations.delete(deleteTarget.id);
+      setDeleteTarget(null);
+      fetchQuotations();
+    } catch (err) {
+      setDeleteTarget(null);
+      setErrorMsg("Error deleting quotation. Check backend logs.");
+    } finally {
+      setIsDeleting(false);
+    }
+  };
 
   return (
     <div style={{ animation: "fadeInUp 0.4s ease" }}>
@@ -839,25 +867,46 @@ function QuotationsSection() {
       <div className="card" style={{ overflow: "hidden" }}>
         <div className="table-scroll">
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
-            <thead><tr><Th>Quote ID</Th><Th>Client</Th><Th>Amount</Th><Th>Status</Th></tr></thead>
+            <thead><tr><Th>Quote ID</Th><Th>Client</Th><Th>Amount</Th><Th>Status</Th><Th>Actions</Th></tr></thead>
             <tbody>
               {(quotations || []).map((q) => (
-                <TableRow key={q.id}>
+                <TableRow key={q.id} onClick={() => navigate("quotation", q)}>
                   <Td style={{ fontFamily: "monospace", color: "var(--pine)", fontWeight: 700 }}>{q.id.split('-')[0]}</Td>
                   <Td>{q.client_name}</Td>
                   <Td style={{ fontWeight: 700, color: "var(--pine)" }}>₹{q.total_cost?.toLocaleString()}</Td>
-                  <Td><span className="badge badge-success">{q.status}</span></Td>
+                  <Td>
+                    <span className="badge" style={{ background: q.status === "CONFIRMED" ? "#e8f5e9" : "#f5f5f5", color: q.status === "CONFIRMED" ? "#2e7d32" : "#8a8a8a", fontWeight: 700, padding: "4px 10px", borderRadius: "12px", fontSize: "0.75rem" }}>
+                      {q.status}
+                    </span>
+                  </Td>
+                  <Td>
+                     <button 
+                       onClick={(e) => { e.stopPropagation(); setDeleteTarget({ id: q.id, title: q.client_name }); }} 
+                       className="btn btn-outline btn-sm" 
+                       style={{ borderColor: "#ffcdd2", color: "#c62828" }}
+                     >
+                       Delete
+                     </button>
+                  </Td>
                 </TableRow>
               ))}
-              {quotations.length === 0 && <tr><Td colSpan="4" style={{textAlign:"center", padding:"var(--space-xl)"}}>No quotations found.</Td></tr>}
+              {quotations.length === 0 && <tr><Td colSpan="5" style={{textAlign:"center", padding:"var(--space-xl)"}}>No quotations found.</Td></tr>}
             </tbody>
           </table>
         </div>
       </div>
+
+      <ConfirmActionModal
+        isOpen={!!deleteTarget}
+        onClose={() => setDeleteTarget(null)}
+        onConfirm={executeDelete}
+        title="Delete Quotation"
+        message={`Are you sure you want to delete the quotation for "${deleteTarget?.title}"?`}
+        isProcessing={isDeleting}
+      />
     </div>
   );
 }
-
 // ─── Pricing Section ────────────────────────────────────────────────────────
 
 function PricingSection() {
@@ -1000,14 +1049,14 @@ export default function AdminDashboard({ navigate, onLogout, userRole }) {
     }
   }, [userRole, navigate]);
 
-  const renderSection = () => {
+const renderSection = () => {
     switch (activeSection) {
       case "destinations": return <DestinationsSection />;
       case "itineraries":  return <ItinerariesSection />;
       case "hotels":       return <HotelsSection />;
       case "vehicles":     return <VehiclesSection />;
       case "agents":       return <AgentsSection />;
-      case "quotations":   return <QuotationsSection />;
+      case "quotations":   return <QuotationsSection navigate={navigate} />;
       case "pricing":      return <PricingSection />; 
       case "activities":   return <ActivitiesSection />;
       case "settings":     return <SettingsSection />; 

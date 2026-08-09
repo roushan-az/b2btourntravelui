@@ -34,7 +34,7 @@ export default function App() {
       {currentPage === "login" && <LoginPage onLogin={handleLogin} navigate={navigate} />}
       {currentPage === "agent-dashboard" && <AgentDashboard navigate={navigate} onLogout={handleLogout} />}
       {currentPage === "package-builder" && <PackageBuilder navigate={navigate} onLogout={handleLogout} initialData={packageData} />}
-      {currentPage === "quotation" && <QuotationPage navigate={navigate} onLogout={handleLogout} packageData={packageData} />}
+      {currentPage === "quotation" && <QuotationPage navigate={navigate} onLogout={handleLogout} packageData={packageData} userRole={userRole} />}
       {currentPage === "admin-dashboard" && <AdminDashboard navigate={navigate} onLogout={handleLogout} />}
       {currentPage === "register" && <RegisterPage navigate={navigate} />}
     </div>

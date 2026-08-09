@@ -197,13 +197,14 @@ export const quotations = {
   get: (id) => request(`/quotations/${id}`),
   create: (data, sendEmail = false) =>
     request(`/quotations?send_email=${sendEmail}`, { method: "POST", body: data }),
-  update: (id, data) => request(`/quotations/${id}`, { method: "PATCH", body: data }),
+  update: (id, data) => request(`/quotations/${id}`, { method: "PATCH", body: JSON.stringify(data) }),
   sendEmail: (id) =>
     request(`/quotations/${id}/send-email`, { method: "POST" }),
   downloadPdf: (id) => `${BASE}/quotations/${id}/pdf`,
   pricePreview: (data) =>
     request("/quotations/price-preview", { method: "POST", body: data }),
   adminStats: () => request("/quotations/admin/stats"),
+  delete: (id) => request(`/quotations/${id}`, { method: "DELETE" }),
 };
 
 // ── Templates ─────────────────────────────────────────────────────────────────
